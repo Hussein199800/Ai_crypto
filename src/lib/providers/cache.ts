@@ -13,8 +13,8 @@ const globalForCache = globalThis as unknown as {
   __csCache?: Map<string, Entry<unknown>>;
   __csInflight?: Map<string, Promise<unknown>>;
 };
-const store = (globalForCache.__csCache ??= new Map());
-const inflight = (globalForCache.__csInflight ??= new Map());
+const store: Map<string, Entry<unknown>> = (globalForCache.__csCache ??= new Map());
+const inflight: Map<string, Promise<unknown>> = (globalForCache.__csInflight ??= new Map());
 
 const MAX_ENTRIES = 2000;
 /** المدة القصوى للاحتفاظ بقيمة قديمة كاحتياطي */
