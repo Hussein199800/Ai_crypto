@@ -1,4 +1,4 @@
-import { formatPercent, formatPrice } from "@/lib/formatters";
+import { percentText, priceText } from "@/lib/formatters";
 import { TREND_LABELS } from "@/lib/formatters/labels";
 import { distancePct } from "@/lib/indicators";
 import type { MomentumAnalysis, MovingAverageState, TrendAnalysis, TrendDirection, VolumeAnalysis } from "@/types/analysis";
@@ -92,13 +92,13 @@ export function buildTrendAnalysis(results: Partial<Record<Timeframe, TimeframeR
     const nearR = r1 != null && r1 - primary.price <= primary.atr14 * 1.2;
     if (nearS && !nearR) {
       zone = "NEAR_SUPPORT";
-      zoneDescription = `السعر قريب من منطقة دعم عند ${formatPrice(s1)}.`;
+      zoneDescription = `السعر قريب من منطقة دعم عند ${priceText(s1)}.`;
     } else if (nearR && !nearS) {
       zone = "NEAR_RESISTANCE";
-      zoneDescription = `السعر قريب من منطقة مقاومة عند ${formatPrice(r1)}.`;
+      zoneDescription = `السعر قريب من منطقة مقاومة عند ${priceText(r1)}.`;
     } else if (s1 != null || r1 != null) {
       zone = "MIDDLE";
-      zoneDescription = `السعر بين الدعم ${formatPrice(s1 ?? null)} والمقاومة ${formatPrice(r1 ?? null)}.`;
+      zoneDescription = `السعر بين الدعم ${priceText(s1 ?? null)} والمقاومة ${priceText(r1 ?? null)}.`;
     }
   }
 
@@ -171,7 +171,7 @@ export function buildVolumeAnalysis(c: ComputedIndicators | null, overview: Asse
     if (c.priceChange10 < -3 && c.volumeRatio10 > 1.2) warnings.push("هبوط مصحوب بحجم مرتفع — ضغط بيع حقيقي.");
   }
   if (liquidity === "LOW") warnings.push("سيولة منخفضة — قد يكون الانزلاق السعري مرتفعًا.");
-  if ((overview.spreadPct ?? 0) > 0.2) warnings.push(`فارق سعر الشراء والبيع مرتفع (${formatPercent(overview.spreadPct, { sign: false })}).`);
+  if ((overview.spreadPct ?? 0) > 0.2) warnings.push(`فارق سعر الشراء والبيع مرتفع (${percentText(overview.spreadPct, { sign: false })}).`);
   const obvTrend: TrendDirection = c.obvSlope == null ? "UNKNOWN" : c.obvSlope > 2 ? "UP" : c.obvSlope < -2 ? "DOWN" : "SIDEWAYS";
   return {
     currentVolume: c.volume,

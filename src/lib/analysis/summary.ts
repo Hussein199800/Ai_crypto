@@ -1,4 +1,4 @@
-import { formatPercent, formatPrice } from "@/lib/formatters";
+import { percentText, priceText } from "@/lib/formatters";
 import { PHASE_LABELS, RISK_LABELS, TREND_LABELS } from "@/lib/formatters/labels";
 import { TIMEFRAME_LABELS } from "@/lib/timeframes";
 import type {
@@ -58,8 +58,8 @@ export function buildSummary(i: SummaryInput): ReportSummary {
   if (risks.length === 0) risks.push(`مستوى المخاطرة ${RISK_LABELS[i.risk.level]} وفق المعطيات الحالية، مع بقاء مخاطر السوق العامة قائمة دائمًا.`);
 
   const watch: string[] = [];
-  if (i.levels.resistance1 != null) watch.push(`إغلاق ${TIMEFRAME_LABELS[i.primaryTf]} فوق المقاومة ${formatPrice(i.levels.resistance1)}`);
-  if (i.levels.support1 != null) watch.push(`صمود الدعم ${formatPrice(i.levels.support1)}`);
+  if (i.levels.resistance1 != null) watch.push(`إغلاق ${TIMEFRAME_LABELS[i.primaryTf]} فوق المقاومة ${priceText(i.levels.resistance1)}`);
+  if (i.levels.support1 != null) watch.push(`صمود الدعم ${priceText(i.levels.support1)}`);
   watch.push("اتجاه هيمنة تيثر USDT.D (ارتفاعها القوي سلبي لشهية المخاطرة)");
   watch.push("تغيرات هيمنة البيتكوين BTC.D مع اتجاه إجمالي السوق");
   if (i.momentum.divergence.type !== "NONE") watch.push(i.momentum.divergence.description);
@@ -68,7 +68,7 @@ export function buildSummary(i: SummaryInput): ReportSummary {
   const technical = `على الإطار المرجعي (${TIMEFRAME_LABELS[i.primaryTf]}): ${i.trend.description} ${i.momentum.description} ${i.volume.description}`;
   const market = i.market.available
     ? `${PHASE_LABELS[i.market.phase]}. اتجاه السوق العام ${TREND_LABELS[i.market.marketTrend]}${
-        i.market.totalChange24h != null ? ` (إجمالي السوق ${formatPercent(i.market.totalChange24h)} خلال 24 ساعة)` : ""
+        i.market.totalChange24h != null ? ` (إجمالي السوق ${percentText(i.market.totalChange24h)} خلال 24 ساعة)` : ""
       }. ${i.market.relations.slice(1, 3).join(" ")}`
     : "بيانات السوق العامة غير متاحة حاليًا، لذلك لم يُربط التقرير بحالة السوق.";
 

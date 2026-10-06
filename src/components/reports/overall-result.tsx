@@ -33,7 +33,7 @@ export function OverallResult({ report }: { report: AnalysisReportData }) {
           <div className="text-sm text-muted-foreground">التقييم</div>
           <div className="flex flex-wrap items-center gap-2">
             <RecommendationBadge value={s.recommendation} className="px-3 py-1 text-base" />
-            <span className="rounded-full border px-2.5 py-0.5 text-xs">{s.bandLabel}</span>
+            {s.bandLabel !== s.recommendationLabel && <span className="rounded-full border px-2.5 py-0.5 text-xs">نطاق الدرجة: {s.bandLabel}</span>}
           </div>
           <p className="text-sm leading-relaxed">{report.summary.headline}</p>
           {report.indicatorReading && (

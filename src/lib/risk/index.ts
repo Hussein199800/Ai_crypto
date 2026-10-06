@@ -1,7 +1,7 @@
 import { historicalVolatility, maxDrawdown } from "@/lib/indicators";
 import type { RiskAssessment, RiskLevel, VolumeAnalysis } from "@/types/analysis";
 import type { AssetKind, AssetOverview, OHLCV } from "@/types/market";
-import { formatPercent } from "@/lib/formatters";
+import { percentText } from "@/lib/formatters";
 
 export interface RiskInput {
   kind: AssetKind;
@@ -28,7 +28,7 @@ export function assessRisk(input: RiskInput): RiskAssessment {
   if (input.kind === "STABLECOIN") {
     const dev = o.price != null ? Math.abs(o.price - 1) : null;
     if (dev != null && dev > 0.01) {
-      factors.push(`انحراف عن الربط بالدولار بمقدار ${formatPercent(dev * 100, { sign: false })}`);
+      factors.push(`انحراف عن الربط بالدولار بمقدار ${percentText(dev * 100, { sign: false })}`);
       return { level: "HIGH", score: 80, atrPct: input.primaryAtrPct, volatility30d: vol30, drawdownFromAth: ddAth, maxDrawdown90d: mdd90, factors };
     }
     factors.push("عملة مستقرة مرتبطة بالدولار — المخاطر الرئيسية تتعلق بالجهة المصدرة والربط");
@@ -68,11 +68,11 @@ export function assessRisk(input: RiskInput): RiskAssessment {
 
   if (ddAth != null && ddAth < -80) {
     score += 10;
-    factors.push(`بعيدة عن قمتها التاريخية بنسبة ${formatPercent(ddAth)}`);
+    factors.push(`بعيدة عن قمتها التاريخية بنسبة ${percentText(ddAth)}`);
   }
   if (mdd90 != null && mdd90 < -40) {
     score += 10;
-    factors.push(`أقصى تراجع خلال 90 يومًا ${formatPercent(mdd90)}`);
+    factors.push(`أقصى تراجع خلال 90 يومًا ${percentText(mdd90)}`);
   }
   if (input.fearGreed != null && (input.fearGreed > 80 || input.fearGreed < 20)) {
     score += 5;

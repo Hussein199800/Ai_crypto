@@ -1,5 +1,5 @@
 import { SCORING_RULES } from "@/config/scoring";
-import { formatNumber, formatPercent, formatPrice } from "@/lib/formatters";
+import { formatNumber, formatPercent, formatPrice, percentText, priceText } from "@/lib/formatters";
 import {
   adx,
   atr,
@@ -570,7 +570,7 @@ function buildSignals(c: ComputedIndicators, trend: TrendDirection): IndicatorSi
         nameEn: "Volume Confirmation",
         category: "volume",
         value: vr,
-        valueText: `السعر ${formatPercent(pc)} / الحجم ${fmt(vr, 2)}x`,
+        valueText: `السعر ${percentText(pc)} / الحجم ${fmt(vr, 2)}x`,
         status,
         score,
         explanation,
@@ -612,7 +612,7 @@ function buildSignals(c: ComputedIndicators, trend: TrendDirection): IndicatorSi
         valueText: `${fmt(pos * 100, 0)}% من النطاق`,
         status: pos < 0.25 ? "قرب الدعم" : pos > 0.75 ? "قرب المقاومة" : "منتصف النطاق",
         score,
-        explanation: `الدعم الأقرب ${formatPrice(s1)} والمقاومة الأقرب ${formatPrice(r1)}. القرب من الدعم يحسّن نسبة العائد للمخاطرة، والقرب من المقاومة يزيد احتمال التذبذب.`,
+        explanation: `الدعم الأقرب ${priceText(s1)} والمقاومة الأقرب ${priceText(r1)}. القرب من الدعم يحسّن نسبة العائد للمخاطرة، والقرب من المقاومة يزيد احتمال التذبذب.`,
       }),
     );
   } else {
@@ -656,7 +656,7 @@ function buildSignals(c: ComputedIndicators, trend: TrendDirection): IndicatorSi
         nameEn: "Fibonacci Retracement",
         category: "levels",
         value: null,
-        valueText: `${formatPrice(c.fib.low)} → ${formatPrice(c.fib.high)}`,
+        valueText: `${priceText(c.fib.low)} → ${priceText(c.fib.high)}`,
         status,
         score,
         explanation: "مستويات فيبوناتشي بين أعلى قمة وأدنى قاع في آخر 120 شمعة تساعد على تقييم عمق التصحيح أو قوة الارتداد.",
@@ -679,7 +679,7 @@ function buildSignals(c: ComputedIndicators, trend: TrendDirection): IndicatorSi
         nameEn: "ATR 14",
         category: "volatility",
         value: c.atr14,
-        valueText: `${formatPrice(c.atr14)} (${formatPercent(c.atrPct, { sign: false })})`,
+        valueText: `${priceText(c.atr14)} (${percentText(c.atrPct, { sign: false })})`,
         status: expanding ? "تقلب متزايد" : calm ? "تقلب منخفض" : "تقلب طبيعي",
         score,
         explanation: "ATR يقيس متوسط مدى الحركة؛ ارتفاعه المفاجئ خاصة مع الهبوط يزيد المخاطر ويتطلب وقف خسارة أوسع.",
@@ -711,7 +711,7 @@ function buildSignals(c: ComputedIndicators, trend: TrendDirection): IndicatorSi
         nameEn: "Bollinger Bands (20,2)",
         category: "volatility",
         value: b,
-        valueText: `%B ${fmt(b, 2)} / العرض ${formatPercent(c.bbBandwidth, { sign: false })}`,
+        valueText: `%B ${fmt(b, 2)} / العرض ${percentText(c.bbBandwidth, { sign: false })}`,
         status,
         score,
         explanation: "تقيس موقع السعر بالنسبة لتقلبه المعتاد؛ الخروج عن النطاق يعني حركة ممتدة قد تتبعها عودة للمتوسط.",

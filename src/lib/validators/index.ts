@@ -2,6 +2,27 @@ import { z } from "zod";
 import { isSupportedSymbol, normalizeSymbol } from "@/config/assets";
 import { TIMEFRAMES } from "@/types/market";
 
+/** رسائل أخطاء عربية افتراضية لكل مخططات Zod */
+const arabicErrorMap: z.ZodErrorMap = (issue, ctx) => {
+  switch (issue.code) {
+    case z.ZodIssueCode.invalid_type:
+      return { message: issue.received === "undefined" ? "حقل مطلوب مفقود" : "نوع القيمة غير صالح" };
+    case z.ZodIssueCode.invalid_enum_value:
+      return { message: `قيمة غير مسموحة. القيم المتاحة: ${issue.options.join("، ")}` };
+    case z.ZodIssueCode.too_small:
+      return { message: issue.type === "string" ? `القيمة قصيرة جدًا (الحد الأدنى ${issue.minimum})` : `القيمة أقل من الحد الأدنى (${issue.minimum})` };
+    case z.ZodIssueCode.too_big:
+      return { message: issue.type === "string" ? `القيمة طويلة جدًا (الحد الأقصى ${issue.maximum})` : `القيمة أكبر من الحد الأقصى (${issue.maximum})` };
+    case z.ZodIssueCode.invalid_string:
+      return { message: "صيغة النص غير صالحة" };
+    case z.ZodIssueCode.unrecognized_keys:
+      return { message: "حقول غير معروفة في الطلب" };
+    default:
+      return { message: ctx.defaultError === "Required" ? "حقل مطلوب" : "قيمة غير صالحة" };
+  }
+};
+z.setErrorMap(arabicErrorMap);
+
 /** رمز أصل مدعوم — يُطبَّع إلى الصيغة القياسية */
 export const symbolSchema = z
   .string({ required_error: "الرمز مطلوب" })

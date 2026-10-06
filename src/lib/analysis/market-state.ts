@@ -1,7 +1,7 @@
 import type { MarketPhase, RiskLevel, TrendDirection } from "@/types/analysis";
 import type { AssetOverview, DominanceData, FearGreedData, GlobalMarketData, OHLCV } from "@/types/market";
-import { formatPercent } from "@/lib/formatters";
-import { dailyTrend, determinePhase } from "./market-context";
+import { percentText } from "@/lib/formatters";
+import { combineMarketTrend, dailyTrend, determinePhase } from "./market-context";
 
 export interface MarketState {
   trend: TrendDirection;
@@ -24,12 +24,7 @@ export function computeMarketState(g: GlobalMarketData | null, d: DominanceData 
   const notes: string[] = [];
   const btcTrend = dailyTrend(btcDaily);
   const tc = g?.marketCapChange24h ?? null;
-  let trend: TrendDirection = "UNKNOWN";
-  if (tc != null || btcTrend !== "UNKNOWN") {
-    if ((tc ?? 0) > 1 && btcTrend !== "DOWN") trend = "UP";
-    else if ((tc ?? 0) < -1 && btcTrend !== "UP") trend = "DOWN";
-    else trend = btcTrend === "UNKNOWN" ? "SIDEWAYS" : btcTrend;
-  }
+  const trend: TrendDirection = combineMarketTrend(tc, btcTrend);
 
   let liquidity: MarketState["liquidity"] = "UNKNOWN";
   if (g?.totalVolume24h && g.totalMarketCap) {
@@ -102,7 +97,7 @@ export function computeMarketAlerts(
       id: `move-${m.symbol}`,
       severity: Math.abs(m.change24h!) >= 15 ? "critical" : "info",
       title: `تغير قوي في سعر ${m.symbol}`,
-      message: `${m.name}: ${formatPercent(m.change24h)} خلال 24 ساعة.`,
+      message: `${m.name}: ${percentText(m.change24h)} خلال 24 ساعة.`,
       symbol: m.symbol,
     });
   }

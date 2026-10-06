@@ -1,6 +1,6 @@
 import { getAssetConfig } from "@/config/assets";
 import { CATEGORY_WEIGHTS, HORIZON_PRIMARY_TIMEFRAME, HORIZON_TIMEFRAME_WEIGHTS } from "@/config/scoring";
-import { DISCLAIMER, formatNumber, formatPercent } from "@/lib/formatters";
+import { DISCLAIMER, formatNumber, percentText } from "@/lib/formatters";
 import { TREND_LABELS } from "@/lib/formatters/labels";
 import { assessRisk } from "@/lib/risk";
 import { categoryAverage, computeScore } from "@/lib/scoring";
@@ -301,20 +301,20 @@ function buildNewsSignals(news: MarketNewsResult | null, symbol: string, name: s
 function indicatorReading(kind: string, symbol: string, input: AnalysisInput, mediumTrend: AnalysisReportData["trend"]["medium"]): string | null {
   const d = input.dominance;
   const tc = input.global?.marketCapChange24h ?? null;
-  const tcText = tc != null ? `إجمالي السوق ${formatPercent(tc)} خلال 24 ساعة` : "اتجاه إجمالي السوق غير متاح";
+  const tcText = tc != null ? `إجمالي السوق ${percentText(tc)} خلال 24 ساعة` : "اتجاه إجمالي السوق غير متاح";
   switch (kind) {
     case "STABLECOIN": {
       const p = input.overview.price;
       const dev = p != null ? (p - 1) * 100 : null;
-      return `عملة مستقرة: لا تنطبق عليها توصيات الشراء أو البيع، والتحليل يركز على ثبات الربط بالدولار (الانحراف الحالي ${dev != null ? formatPercent(dev, { digits: 3 }) : "غير متاح"}). ${
+      return `عملة مستقرة: لا تنطبق عليها توصيات الشراء أو البيع، والتحليل يركز على ثبات الربط بالدولار (الانحراف الحالي ${dev != null ? percentText(dev, { digits: 3 }) : "غير متاح"}). ${
         symbol === "USDT" && d?.usdtDominance != null ? `هيمنة تيثر USDT.D عند ${formatNumber(d.usdtDominance, 2)}%، وارتفاعها يعني اتجاه السيولة نحو الأمان.` : ""
       }`;
     }
     case "DOMINANCE":
       if (symbol === "BTC.D") {
-        return `هيمنة البيتكوين BTC.D ليست أصلًا قابلًا للشراء ولا تُعد توصية مباشرة. الاتجاه متوسط المدى ${TREND_LABELS[mediumTrend]}، و${tcText}. صعود BTC.D مع صعود السوق يعني قوة نسبية للبيتكوين، وهبوطها مع صعود السوق قد يعني توسع السيولة نحو العملات البديلة. ${d?.method ?? ""}`;
+        return `هيمنة البيتكوين BTC.D ليست أصلًا قابلًا للشراء ولا تُعد توصية مباشرة. الاتجاه متوسط المدى ${TREND_LABELS[mediumTrend]}، و${tcText}. صعود BTC.D مع صعود السوق يعني قوة نسبية للبيتكوين، وهبوطها مع صعود السوق قد يعني توسع السيولة نحو العملات البديلة.`;
       }
-      return `هيمنة تيثر USDT.D مؤشر على شهية المخاطرة وليست توصية مباشرة. الاتجاه متوسط المدى ${TREND_LABELS[mediumTrend]}، و${tcText}. ارتفاعها بقوة يحذّر من تراجع شهية المخاطرة، وانخفاضها يعني عودة السيولة إلى الأصول الرقمية. ${d?.method ?? ""}`;
+      return `هيمنة تيثر USDT.D مؤشر على شهية المخاطرة وليست توصية مباشرة. الاتجاه متوسط المدى ${TREND_LABELS[mediumTrend]}، و${tcText}. ارتفاعها بقوة يحذّر من تراجع شهية المخاطرة، وانخفاضها يعني عودة السيولة إلى الأصول الرقمية.`;
     case "INDEX":
       return `${symbol} مؤشر لإجمالي القيمة السوقية${symbol === "TOTAL2" ? " باستثناء البيتكوين" : symbol === "TOTAL3" ? " باستثناء البيتكوين والإيثريوم" : ""} — يُستخدم لتقييم بيئة السوق وليس توصية مباشرة. الاتجاه متوسط المدى ${TREND_LABELS[mediumTrend]}.`;
     case "PAIR":

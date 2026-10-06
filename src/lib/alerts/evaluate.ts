@@ -1,4 +1,4 @@
-import { formatPercent, formatPrice } from "@/lib/formatters";
+import { percentText, priceText } from "@/lib/formatters";
 import type { TrendDirection } from "@/types/analysis";
 
 export type AlertType = "PRICE_MOVE" | "SUPPORT_BREAK" | "RESISTANCE_BREAK" | "BTC_D_CHANGE" | "USDT_D_RISE" | "EMA_CROSS" | "TREND_CHANGE";
@@ -70,7 +70,7 @@ export function evaluateAlert(rule: AlertRule, ctx: AlertContext, now = Date.now
       value = ctx.change24h;
       if (value != null && t != null && Math.abs(value) >= t) {
         fire = true;
-        message = `${rule.symbol}: تغير السعر ${formatPercent(value)} خلال 24 ساعة (العتبة ${t}%).`;
+        message = `${rule.symbol}: تغير السعر ${percentText(value)} خلال 24 ساعة (العتبة ${t}%).`;
       }
       break;
     }
@@ -85,8 +85,8 @@ export function evaluateAlert(rule: AlertRule, ctx: AlertContext, now = Date.now
       if (crossed) {
         fire = true;
         message = isSupport
-          ? `${rule.symbol}: كسر السعر مستوى الدعم ${formatPrice(level)} (السعر ${formatPrice(ctx.price)}).`
-          : `${rule.symbol}: اخترق السعر مستوى المقاومة ${formatPrice(level)} (السعر ${formatPrice(ctx.price)}).`;
+          ? `${rule.symbol}: كسر السعر مستوى الدعم ${priceText(level)} (السعر ${priceText(ctx.price)}).`
+          : `${rule.symbol}: اخترق السعر مستوى المقاومة ${priceText(level)} (السعر ${priceText(ctx.price)}).`;
       }
       newState = state;
       break;

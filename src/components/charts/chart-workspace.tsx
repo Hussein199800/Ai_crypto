@@ -122,10 +122,15 @@ export function ChartWorkspace({ tradingViewConfigured }: { tradingViewConfigure
       crosshair: { mode: CrosshairMode.Normal },
       rightPriceScale: { borderColor: grid },
       timeScale: { borderColor: grid, timeVisible: timeframe !== "1d" && timeframe !== "1w" },
-      localization: { priceFormatter: (p: number) => (comparing ? `${p.toFixed(2)}%` : formatAssetValue(p, data.kind).replace("$", "")) },
+      localization: { locale: "en-US" },
     });
     chartRef.current = chart;
     const times = data.candles.map((c) => c.time);
+    // تنسيق محور السعر للرسم الرئيسي فقط (المؤشرات السفلية تحتفظ بتنسيقها)
+    const lastPrice = data.candles[data.candles.length - 1].close;
+    const minMove = lastPrice >= 1000 ? 0.01 : lastPrice >= 1 ? 0.0001 : 0.00000001;
+    const priceFormat = { type: "custom" as const, minMove, formatter: (p: number) => formatAssetValue(p, data.kind).replace("$", "") };
+    const pctFormat = { type: "custom" as const, minMove: 0.01, formatter: (p: number) => `${p.toFixed(2)}%` };
 
     let mainSeries: ISeriesApi<SeriesType>;
     if (comparing) {
@@ -136,25 +141,25 @@ export function ChartWorkspace({ tradingViewConfigured }: { tradingViewConfigure
         const cs = d.candles.filter((c) => c.time >= start);
         if (cs.length === 0) return;
         const base = cs[0].close;
-        const s = chart.addSeries(LineSeries, { color: COMPARE_COLORS[i % COMPARE_COLORS.length], lineWidth: 2, title: d.display, priceLineVisible: false });
+        const s = chart.addSeries(LineSeries, { color: COMPARE_COLORS[i % COMPARE_COLORS.length], lineWidth: 2, title: d.display, priceLineVisible: false, priceFormat: pctFormat });
         s.setData(cs.map((c) => ({ time: toTime(c.time), value: ((c.close - base) / base) * 100 })));
         if (i === 0) mainSeries = s;
       });
       mainSeries ??= chart.addSeries(LineSeries, {});
     } else {
       if (kind === "candles") {
-        mainSeries = chart.addSeries(CandlestickSeries, { upColor: "#22C55E", downColor: "#EF4444", borderVisible: false, wickUpColor: "#22C55E", wickDownColor: "#EF4444" });
+        mainSeries = chart.addSeries(CandlestickSeries, { priceFormat, upColor: "#22C55E", downColor: "#EF4444", borderVisible: false, wickUpColor: "#22C55E", wickDownColor: "#EF4444" });
         mainSeries.setData(data.candles.map((c) => ({ time: toTime(c.time), open: c.open, high: c.high, low: c.low, close: c.close })));
       } else if (kind === "line") {
-        mainSeries = chart.addSeries(LineSeries, { color: "#22C55E", lineWidth: 2 });
+        mainSeries = chart.addSeries(LineSeries, { priceFormat, color: "#22C55E", lineWidth: 2 });
         mainSeries.setData(data.candles.map((c) => ({ time: toTime(c.time), value: c.close })));
       } else {
-        mainSeries = chart.addSeries(AreaSeries, { lineColor: "#22C55E", topColor: "rgba(34,197,94,0.35)", bottomColor: "rgba(34,197,94,0)", lineWidth: 2 });
+        mainSeries = chart.addSeries(AreaSeries, { priceFormat, lineColor: "#22C55E", topColor: "rgba(34,197,94,0.35)", bottomColor: "rgba(34,197,94,0)", lineWidth: 2 });
         mainSeries.setData(data.candles.map((c) => ({ time: toTime(c.time), value: c.close })));
       }
       const ind = data.indicators;
       const addLine = (values: (number | null)[], color: string, title: string, style = LineStyle.Solid) => {
-        const s = chart.addSeries(LineSeries, { color, lineWidth: 1, title, priceLineVisible: false, lastValueVisible: false, lineStyle: style, crosshairMarkerVisible: false });
+        const s = chart.addSeries(LineSeries, { priceFormat, color, lineWidth: 1, title, priceLineVisible: false, lastValueVisible: false, lineStyle: style, crosshairMarkerVisible: false });
         s.setData(lineData(times, values));
       };
       if (overlays.has("ema20")) addLine(ind.ema20, "#38BDF8", "EMA20");
@@ -201,10 +206,9 @@ export function ChartWorkspace({ tradingViewConfigured }: { tradingViewConfigure
         chart.addSeries(LineSeries, { color: "#A78BFA", lineWidth: 1, title: "OBV", priceLineVisible: false }, paneIndex).setData(lineData(times, ind.obv));
         paneIndex++;
       }
+      // الرسم الرئيسي يأخذ المساحة الأكبر، وكل مؤشر سفلي حصة ثابتة أصغر
       const ps = chart.panes();
-      ps.forEach((p, i) => {
-        if (i > 0) p.setHeight(110);
-      });
+      ps.forEach((p, i) => p.setStretchFactor(i === 0 ? 3.5 : 1));
     }
     mainSeriesRef.current = mainSeries!;
 

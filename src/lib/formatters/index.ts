@@ -80,3 +80,17 @@ export function formatAssetValue(v: number | null | undefined, kind: string): st
   if (kind === "PAIR") return v == null ? "غير متاح" : `${formatNumber(v, 6)} BTC`;
   return formatPrice(v);
 }
+
+/** عزل نص لاتيني/رقمي داخل جملة عربية (يمنع انقلاب موضع $ و% و-) */
+export function bidi(s: string): string {
+  return `⁦${s}⁩`;
+}
+
+/** سعر معزول اتجاهيًا للاستخدام داخل النصوص العربية */
+export function priceText(v: number | null | undefined): string {
+  return bidi(formatPrice(v));
+}
+
+export function percentText(v: number | null | undefined, opts?: { sign?: boolean; digits?: number }): string {
+  return bidi(formatPercent(v, opts));
+}

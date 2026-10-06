@@ -1,5 +1,5 @@
 import { SCORING_RULES } from "@/config/scoring";
-import { formatCompact, formatNumber, formatPercent } from "@/lib/formatters";
+import { formatCompact, formatNumber, percentText } from "@/lib/formatters";
 import { PHASE_LABELS, TREND_LABELS } from "@/lib/formatters/labels";
 import type { IndicatorSignal, MarketContext, MarketPhase, TrendDirection } from "@/types/analysis";
 import type { AssetKind, DominanceData, FearGreedData, GlobalMarketData, OHLCV } from "@/types/market";
@@ -65,7 +65,7 @@ export function analyzeMarketContext(input: MarketContextInput): MarketContext {
         nameEn: "TOTAL Market Cap (24h)",
         category: "market",
         value: totalChange,
-        valueText: `${formatCompact(g?.totalMarketCap)} (${formatPercent(totalChange)})`,
+        valueText: `${formatCompact(g?.totalMarketCap)} (${percentText(totalChange)})`,
         status: totalChange > 1.5 ? "السوق الكلي يرتفع بوضوح" : totalChange < -1.5 ? "السوق الكلي يتراجع بوضوح" : "السوق الكلي مستقر نسبيًا",
         score: Math.max(-0.6, Math.min(0.6, totalChange / 3)),
         explanation: "اتجاه إجمالي السوق يعكس تدفق السيولة العام إلى العملات الرقمية أو خروجها منها.",
@@ -194,8 +194,7 @@ export function analyzeMarketContext(input: MarketContextInput): MarketContext {
   if (udc != null && udc > SCORING_RULES.usdtDominanceStrongRise) {
     relations.push("هيمنة تيثر ترتفع بقوة: تحذير من تراجع الشهية للمخاطرة، ويُفضّل الحذر في الدخول الجديد.");
   }
-  const marketTrend: TrendDirection =
-    totalChange == null ? "UNKNOWN" : totalChange > 1 && btcTrend !== "DOWN" ? "UP" : totalChange < -1 && btcTrend !== "UP" ? "DOWN" : btcTrend === "UNKNOWN" ? "SIDEWAYS" : btcTrend;
+  const marketTrend = combineMarketTrend(totalChange, btcTrend);
 
   return {
     available: Boolean(g || d || fg),
@@ -218,4 +217,17 @@ export function analyzeMarketContext(input: MarketContextInput): MarketContext {
     dominanceMethod: d?.method ?? "غير متاح",
     dataTime: g?.meta.dataTime ?? g?.meta.fetchedAt ?? null,
   };
+}
+
+/**
+ * اتجاه السوق العام = تغير إجمالي السوق خلال 24 ساعة + اتجاه البيتكوين اليومي.
+ * إذا تعارضا (مثلًا هبوط يومي قوي داخل اتجاه صاعد) يُعتبر الاتجاه عرضيًا/مختلطًا.
+ */
+export function combineMarketTrend(totalChange: number | null, btcTrend: TrendDirection): TrendDirection {
+  if (totalChange == null && btcTrend === "UNKNOWN") return "UNKNOWN";
+  const tc = totalChange ?? 0;
+  const dayDir: TrendDirection = tc > 1 ? "UP" : tc < -1 ? "DOWN" : "SIDEWAYS";
+  if (btcTrend === "UNKNOWN") return dayDir;
+  if (dayDir === "SIDEWAYS") return btcTrend;
+  return dayDir === btcTrend ? btcTrend : "SIDEWAYS";
 }

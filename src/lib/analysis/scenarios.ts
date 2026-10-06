@@ -1,4 +1,4 @@
-import { formatPrice } from "@/lib/formatters";
+import { priceText } from "@/lib/formatters";
 import type { KeyLevels, MarketContext, Scenario } from "@/types/analysis";
 import type { Timeframe } from "@/types/market";
 import { TIMEFRAME_LABELS } from "@/lib/timeframes";
@@ -6,7 +6,7 @@ import { TIMEFRAME_LABELS } from "@/lib/timeframes";
 /** ثلاثة سيناريوهات محتملة — صياغة شرطية وليست توقعات مؤكدة */
 export function buildScenarios(score: number, levels: KeyLevels, market: MarketContext, tf: Timeframe): Scenario[] {
   const tfl = TIMEFRAME_LABELS[tf];
-  const f = (v: number | null) => (v == null ? "غير متاح" : formatPrice(v));
+  const f = (v: number | null) => (v == null ? "غير متاح" : priceText(v));
   const pos: Scenario["likelihood"] = score >= 60 ? "أعلى نسبيًا" : score <= 40 ? "أقل نسبيًا" : "متوسط";
   const neg: Scenario["likelihood"] = score <= 40 ? "أعلى نسبيًا" : score >= 60 ? "أقل نسبيًا" : "متوسط";
   const neu: Scenario["likelihood"] = score > 40 && score < 60 ? "أعلى نسبيًا" : "متوسط";
