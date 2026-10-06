@@ -7,6 +7,7 @@ import { ChangeBadge } from "@/components/common/change-badge";
 import { EmptyState } from "@/components/common/states";
 import { formatPrice, formatRelative } from "@/lib/formatters";
 import type { RankedAsset } from "@/lib/analysis/dashboard";
+import { reportPath } from "@/lib/routes";
 
 export function MoversList({ title, icon, items, loading, tone }: { title: string; icon: LucideIcon; items?: RankedAsset[]; loading: boolean; tone: "positive" | "negative" }) {
   return (
@@ -23,7 +24,7 @@ export function MoversList({ title, icon, items, loading, tone }: { title: strin
           <EmptyState title="لا توجد بيانات" description="تعذر جلب أسعار العملات حاليًا." className="m-3 border-0" />
         ) : (
           items.map((r) => (
-            <Link key={r.overview.symbol} href={`/reports/${encodeURIComponent(r.overview.symbol)}`} className="flex items-center gap-3 p-3 transition-colors hover:bg-accent/40">
+            <Link key={r.overview.symbol} href={reportPath(r.overview.symbol)} className="flex items-center gap-3 p-3 transition-colors hover:bg-accent/40">
               <div className={`grid h-9 w-9 place-items-center rounded-full border text-xs font-bold ${tone === "positive" ? "border-positive/40 text-positive" : "border-negative/40 text-negative"}`}>
                 {r.overview.symbol.slice(0, 4)}
               </div>

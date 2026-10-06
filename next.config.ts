@@ -17,7 +17,22 @@ const csp = [
   "object-src 'none'",
 ].join("; ");
 
-const nextConfig: NextConfig = {
+/**
+ * النسخة الثابتة لـ GitHub Pages: NEXT_PUBLIC_STATIC_MODE=true و NEXT_PUBLIC_BASE_PATH=/اسم-المستودع
+ * (انظر scripts/build-pages.mjs). لا خادم ولا ترويسات مخصصة في هذا الوضع.
+ */
+const isStatic = process.env.NEXT_PUBLIC_STATIC_MODE === "true";
+const basePath = isStatic ? (process.env.NEXT_PUBLIC_BASE_PATH ?? "").replace(/\/$/, "") : "";
+
+const staticConfig: NextConfig = {
+  reactStrictMode: true,
+  output: "export",
+  basePath: basePath || undefined,
+  trailingSlash: true,
+  images: { unoptimized: true },
+};
+
+const nextConfig: NextConfig = isStatic ? staticConfig : {
   reactStrictMode: true,
   poweredByHeader: false,
   images: {

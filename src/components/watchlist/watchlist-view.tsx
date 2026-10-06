@@ -18,6 +18,8 @@ import { apiGet, errorMessage } from "@/lib/client/fetcher";
 import { formatAssetValue, formatRelative } from "@/lib/formatters";
 import type { AssetOverview } from "@/types/market";
 import type { Recommendation } from "@/types/analysis";
+import { STATIC_MODE } from "@/lib/static-mode";
+import { reportPath } from "@/lib/routes";
 
 type AssetRow = AssetOverview & { analysis: { score: number; recommendation: Recommendation; createdAt: string; id: string } | null };
 type SortKey = "custom" | "name" | "change" | "score";
@@ -61,13 +63,17 @@ export function WatchlistView() {
       {!wl.authed && (
         <div className="flex gap-2 rounded-lg border border-info/40 bg-info/10 p-3 text-sm">
           <Info className="mt-0.5 h-4 w-4 shrink-0 text-info" aria-hidden />
-          <span>
-            أنت غير مسجل: تُحفظ المفضلة في هذا المتصفح فقط وقد تُفقد عند مسح بيانات المتصفح.{" "}
-            <Link href="/login?callbackUrl=/watchlist" className="text-primary underline">
-              سجّل الدخول
-            </Link>{" "}
-            لحفظها في حسابك.
-          </span>
+          {STATIC_MODE ? (
+            <span>تُحفظ المفضلة في هذا المتصفح فقط (النسخة الثابتة لا تدعم الحسابات) وقد تُفقد عند مسح بيانات المتصفح.</span>
+          ) : (
+            <span>
+              أنت غير مسجل: تُحفظ المفضلة في هذا المتصفح فقط وقد تُفقد عند مسح بيانات المتصفح.{" "}
+              <Link href="/login?callbackUrl=/watchlist" className="text-primary underline">
+                سجّل الدخول
+              </Link>{" "}
+              لحفظها في حسابك.
+            </span>
+          )}
         </div>
       )}
       <Card className="flex flex-wrap items-end gap-2 p-3">
@@ -150,7 +156,7 @@ export function WatchlistView() {
                           </>
                         )}
                         <Button asChild variant="outline" size="sm">
-                          <Link href={`/reports/${encodeURIComponent(symbol)}`}>
+                          <Link href={reportPath(symbol)}>
                             <ExternalLink />
                             التقرير
                           </Link>

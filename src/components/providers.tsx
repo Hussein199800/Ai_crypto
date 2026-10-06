@@ -7,6 +7,7 @@ import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ApiClientError } from "@/lib/client/fetcher";
+import { STATIC_MODE } from "@/lib/static-mode";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [client] = useState(
@@ -26,7 +27,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
       }),
   );
   return (
-    <SessionProvider>
+    // في النسخة الثابتة لا يوجد خادم مصادقة: جلسة فارغة دون أي طلبات
+    <SessionProvider {...(STATIC_MODE ? { session: null, refetchOnWindowFocus: false } : {})}>
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
         <QueryClientProvider client={client}>
           <TooltipProvider delayDuration={200}>

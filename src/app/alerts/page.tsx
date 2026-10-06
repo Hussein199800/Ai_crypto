@@ -1,12 +1,16 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { AlertsView } from "@/components/alerts/alerts-view";
-import { getViewer } from "@/lib/auth/session";
+import { RequireAuth, ServerOnlyNotice } from "@/components/common/static-mode";
+import { STATIC_MODE } from "@/lib/static-mode";
 
 export const metadata: Metadata = { title: "التنبيهات" };
 
-/** صفحة خاصة — محمية بالوسيط، ومع تحقق إضافي على الخادم */
-export default async function AlertsPage() {
-  if (!(await getViewer())) redirect("/login?callbackUrl=/alerts");
-  return <AlertsView />;
+/** صفحة خاصة — محمية بالوسيط على الخادم، ومسارات الـ API تتحقق من الجلسة أيضًا */
+export default function AlertsPage() {
+  if (STATIC_MODE) return <ServerOnlyNotice feature="التنبيهات" />;
+  return (
+    <RequireAuth callbackUrl="/alerts">
+      <AlertsView />
+    </RequireAuth>
+  );
 }

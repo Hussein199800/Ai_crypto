@@ -8,11 +8,12 @@ import { HorizonBadge, MockBadge, RecommendationBadge, RiskBadge } from "@/compo
 import { ChangeBadge } from "@/components/common/change-badge";
 import { formatAssetValue, formatDateTime } from "@/lib/formatters";
 import type { ReportRecord } from "@/types/analysis";
+import { reportPath, reportPrintPath } from "@/lib/routes";
 
 export function ReportCard({ report }: { report: ReportRecord }) {
   const cfg = getAssetConfig(report.symbol);
   const kind = cfg?.kind ?? "CRYPTO";
-  const href = `/reports/${encodeURIComponent(report.symbol)}${report.id ? `?id=${report.id}` : ""}`;
+  const href = reportPath(report.symbol, report.id);
   return (
     <Card className="flex h-full flex-col gap-3 p-4">
       <div className="flex items-start justify-between gap-2">
@@ -61,7 +62,7 @@ export function ReportCard({ report }: { report: ReportRecord }) {
         <div className="flex gap-1.5">
           {report.id && (
             <Button asChild variant="ghost" size="sm" title="تصدير PDF">
-              <Link href={`/reports/${encodeURIComponent(report.symbol)}/print?id=${report.id}`} target="_blank" rel="noopener">
+              <Link href={reportPrintPath(report.symbol, report.id)} target="_blank" rel="noopener">
                 <FileDown />
                 <span className="sr-only sm:not-sr-only">PDF</span>
               </Link>

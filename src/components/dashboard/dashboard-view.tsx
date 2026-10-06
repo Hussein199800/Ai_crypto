@@ -13,6 +13,7 @@ import { MarketStatePanel } from "./market-state-panel";
 import { MoversList } from "./movers-list";
 import { LatestReports } from "./latest-reports";
 import { MarketAlerts } from "./market-alerts";
+import { reportPath } from "@/lib/routes";
 
 export function DashboardView() {
   const q = useQuery({
@@ -51,7 +52,7 @@ export function DashboardView() {
               changeLabel="24 ساعة"
               tone={toneOf(d.global?.marketCapChange24h)}
               updatedAt={updated}
-              href="/reports/TOTAL"
+              href={reportPath("TOTAL")}
             />
             <StatCard
               label="تغير السوق خلال 24 ساعة"
@@ -70,7 +71,7 @@ export function DashboardView() {
               changeUnit="pts"
               tone="info"
               updatedAt={updated}
-              href="/reports/BTC.D"
+              href={reportPath("BTC.D")}
             />
             <StatCard
               label="هيمنة تيثر USDT.D"
@@ -81,7 +82,7 @@ export function DashboardView() {
               hint={udc != null && udc > 0.15 ? "ارتفاع قوي ⚠" : undefined}
               tone={udc != null && udc > 0.15 ? "warning" : "neutral"}
               updatedAt={updated}
-              href="/reports/USDT.D"
+              href={reportPath("USDT.D")}
             />
             <StatCard
               label="مؤشر الخوف والطمع"

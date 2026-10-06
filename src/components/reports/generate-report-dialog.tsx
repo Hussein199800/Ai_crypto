@@ -15,6 +15,7 @@ import { Select } from "@/components/ui/select";
 import { apiSend, errorMessage } from "@/lib/client/fetcher";
 import { HORIZON_DESCRIPTIONS } from "@/lib/formatters/labels";
 import type { Horizon, ReportRecord } from "@/types/analysis";
+import { reportPath } from "@/lib/routes";
 
 export function GenerateReportDialog({ defaultOpen = false, defaultSymbol }: { defaultOpen?: boolean; defaultSymbol?: string }) {
   const [open, setOpen] = useState(defaultOpen);
@@ -40,7 +41,7 @@ export function GenerateReportDialog({ defaultOpen = false, defaultSymbol }: { d
       if (!r.persisted) toast.warning("تعذر حفظ التقرير في قاعدة البيانات — يُعرض مؤقتًا فقط.");
       qc.invalidateQueries({ queryKey: ["reports"] });
       setOpen(false);
-      router.push(`/reports/${encodeURIComponent(r.symbol)}${r.id ? `?id=${r.id}` : ""}`);
+      router.push(reportPath(r.symbol, r.id));
     },
     onError: (e) => toast.error(errorMessage(e)),
   });

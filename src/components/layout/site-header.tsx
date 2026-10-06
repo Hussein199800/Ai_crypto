@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { Logo } from "./logo";
 import { ThemeToggle } from "./theme-toggle";
 import { UserMenu } from "./user-menu";
+import { STATIC_MODE } from "@/lib/static-mode";
 
 const NAV = [
   { href: "/", label: "الرئيسية" },
@@ -43,9 +44,11 @@ export function SiteHeader() {
         </nav>
         <div className="ms-auto flex items-center gap-1 md:ms-0">
           <ThemeToggle />
-          <div className="hidden sm:block">
-            <UserMenu />
-          </div>
+          {!STATIC_MODE && (
+            <div className="hidden sm:block">
+              <UserMenu />
+            </div>
+          )}
           <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setOpen((o) => !o)} aria-label="القائمة" aria-expanded={open}>
             {open ? <X /> : <Menu />}
           </Button>
@@ -64,9 +67,11 @@ export function SiteHeader() {
                 {n.label}
               </Link>
             ))}
-            <div className="pt-2 sm:hidden">
-              <UserMenu />
-            </div>
+            {!STATIC_MODE && (
+              <div className="pt-2 sm:hidden">
+                <UserMenu />
+              </div>
+            )}
           </div>
         </nav>
       )}

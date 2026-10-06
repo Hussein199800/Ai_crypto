@@ -10,10 +10,8 @@ import { Providers } from "@/components/providers";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { MockBanner } from "@/components/layout/mock-banner";
+import { StaticBanner } from "@/components/common/static-mode";
 import { isMockMode } from "@/lib/env";
-
-// يعتمد التخطيط على متغيرات البيئة وقت التشغيل (شريط الوضع التجريبي) لذا لا يُولَّد مسبقًا
-export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: { default: "CryptoScope AI — تحليل العملات الرقمية", template: "%s | CryptoScope AI" },
@@ -28,12 +26,14 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  // وضع Mock يُعطَّل دائمًا في الإنتاج (البناء والتشغيل)، لذا لا يتأثر بالتوليد المسبق للصفحات
   const mock = isMockMode();
   return (
     <html lang="ar" dir="rtl" className="dark" suppressHydrationWarning>
       <body className="min-h-screen">
         <Providers>
           {mock && <MockBanner />}
+          <StaticBanner />
           <SiteHeader />
           <main className="container py-6">{children}</main>
           <SiteFooter />

@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { SectionTitle } from "@/components/common/section-title";
 import type { MarketAlertItem } from "@/lib/analysis/market-state";
 import { cn } from "@/lib/utils";
+import { reportPath } from "@/lib/routes";
 
 const ICONS = { info: Info, warning: TriangleAlert, critical: OctagonAlert };
 const TONES = { info: "text-info", warning: "text-warning", critical: "text-negative" };
@@ -35,7 +36,7 @@ export function MarketAlerts({ alerts, loading }: { alerts?: MarketAlertItem[]; 
               </div>
             );
             return a.symbol ? (
-              <Link key={a.id} href={`/reports/${encodeURIComponent(a.symbol)}`} className="block hover:bg-accent/40">
+              <Link key={a.id} href={reportPath(a.symbol)} className="block hover:bg-accent/40">
                 {body}
               </Link>
             ) : (

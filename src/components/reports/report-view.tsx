@@ -17,6 +17,7 @@ import { HORIZON_DESCRIPTIONS } from "@/lib/formatters/labels";
 import { formatRelative } from "@/lib/formatters";
 import type { Horizon, ReportRecord } from "@/types/analysis";
 import { ReportContent } from "./report-content";
+import { reportPath, reportPrintPath } from "@/lib/routes";
 
 export function ReportView({ symbol }: { symbol: string }) {
   const params = useSearchParams();
@@ -42,7 +43,7 @@ export function ReportView({ symbol }: { symbol: string }) {
       qc.invalidateQueries({ queryKey: ["reports"] });
       if (r.id) {
         qc.setQueryData(["report", symbol, r.id], r);
-        router.replace(`/reports/${encodeURIComponent(symbol)}?id=${r.id}`, { scroll: false });
+        router.replace(reportPath(symbol, r.id), { scroll: false });
       } else {
         qc.setQueryData(["report", symbol, id], r);
         toast.warning("تعذر حفظ التقرير — يُعرض مؤقتًا فقط.");
@@ -64,7 +65,7 @@ export function ReportView({ symbol }: { symbol: string }) {
   if (q.isError) {
     const notFound = q.error instanceof ApiClientError && q.error.status === 404;
     return notFound ? (
-      <EmptyState title="التقرير غير موجود" description="قد يكون التقرير خاصًا أو محذوفًا." action={<Button asChild><Link href={`/reports/${encodeURIComponent(symbol)}`}>عرض أحدث تقرير لـ {cfg.display}</Link></Button>} />
+      <EmptyState title="التقرير غير موجود" description="قد يكون التقرير خاصًا أو محذوفًا." action={<Button asChild><Link href={reportPath(symbol)}>عرض أحدث تقرير لـ {cfg.display}</Link></Button>} />
     ) : (
       <ErrorState message={errorMessage(q.error)} onRetry={() => q.refetch()} />
     );
@@ -126,7 +127,7 @@ export function ReportView({ symbol }: { symbol: string }) {
       </Button>
       {record.id && (
         <Button size="sm" variant="outline" asChild>
-          <Link href={`/reports/${encodeURIComponent(symbol)}/print?id=${record.id}`} target="_blank" rel="noopener">
+          <Link href={reportPrintPath(symbol, record.id)} target="_blank" rel="noopener">
             <FileDown />
             تصدير PDF
           </Link>
