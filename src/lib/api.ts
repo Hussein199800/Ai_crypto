@@ -3,16 +3,9 @@ import { ZodError } from "zod";
 import { logError } from "@/lib/logger";
 import { NotSupportedError, ProviderError, UnknownSymbolError } from "@/lib/providers/errors";
 import { firstError } from "@/lib/validators";
+import { HttpError } from "@/lib/errors";
 
-export class HttpError extends Error {
-  constructor(
-    public readonly status: number,
-    message: string,
-    public readonly code?: string,
-  ) {
-    super(message);
-  }
-}
+export { HttpError };
 
 export function jsonOk<T>(data: T, init?: ResponseInit) {
   return NextResponse.json(data, init);

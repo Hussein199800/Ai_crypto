@@ -30,7 +30,7 @@ import { DataFreshness } from "@/components/common/data-freshness";
 import { apiGet, errorMessage } from "@/lib/client/fetcher";
 import { formatAssetValue } from "@/lib/formatters";
 import { TIMEFRAME_LABELS } from "@/lib/timeframes";
-import type { ChartData } from "@/lib/services/charts";
+import type { ChartData } from "@/lib/analysis/chart-data";
 import { TIMEFRAMES, type Timeframe } from "@/types/market";
 import { cn } from "@/lib/utils";
 

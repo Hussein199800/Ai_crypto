@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SectionTitle } from "@/components/common/section-title";
 import { PHASE_LABELS, RISK_LABELS, TREND_LABELS } from "@/lib/formatters/labels";
-import type { DashboardData } from "@/lib/services/market";
+import type { DashboardData } from "@/lib/analysis/dashboard";
 import { cn } from "@/lib/utils";
 
 const LIQ = { HIGH: "مرتفعة", MEDIUM: "متوسطة", LOW: "ضعيفة", UNKNOWN: "غير متاح" } as const;

@@ -6,7 +6,7 @@ import { SectionTitle } from "@/components/common/section-title";
 import { ChangeBadge } from "@/components/common/change-badge";
 import { EmptyState } from "@/components/common/states";
 import { formatPrice, formatRelative } from "@/lib/formatters";
-import type { RankedAsset } from "@/lib/services/market";
+import type { RankedAsset } from "@/lib/analysis/dashboard";
 
 export function MoversList({ title, icon, items, loading, tone }: { title: string; icon: LucideIcon; items?: RankedAsset[]; loading: boolean; tone: "positive" | "negative" }) {
   return (

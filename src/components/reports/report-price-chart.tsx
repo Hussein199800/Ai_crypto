@@ -5,7 +5,7 @@ import { Area, AreaChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Too
 import { Skeleton } from "@/components/ui/skeleton";
 import { apiGet } from "@/lib/client/fetcher";
 import { formatAssetValue, formatDate } from "@/lib/formatters";
-import type { ChartData } from "@/lib/services/charts";
+import type { ChartData } from "@/lib/analysis/chart-data";
 import type { AnalysisReportData } from "@/types/analysis";
 import { HORIZON_PRIMARY_TIMEFRAME } from "@/config/scoring";
 import { TIMEFRAME_LABELS } from "@/lib/timeframes";

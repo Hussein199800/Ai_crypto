@@ -1,6 +1,6 @@
 import type { Viewer } from "@/lib/auth/policy";
 import { prisma } from "@/lib/db";
-import { HttpError } from "@/lib/api";
+import { HttpError } from "@/lib/errors";
 import { getAssetsList } from "./market";
 
 const MAX_ITEMS = 50;

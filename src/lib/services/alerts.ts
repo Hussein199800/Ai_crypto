@@ -1,6 +1,6 @@
 import type { Viewer } from "@/lib/auth/policy";
 import { prisma } from "@/lib/db";
-import { HttpError } from "@/lib/api";
+import { HttpError } from "@/lib/errors";
 import { logError } from "@/lib/logger";
 import { getMarketDataProvider } from "@/lib/providers";
 import { computeIndicators, trendOf } from "@/lib/analysis/timeframe";

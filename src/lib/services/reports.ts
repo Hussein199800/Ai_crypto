@@ -1,17 +1,17 @@
 import { Prisma, type AnalysisReport } from "@prisma/client";
 import { getAssetConfig } from "@/config/assets";
-import { HttpError } from "@/lib/api";
+import { HttpError } from "@/lib/errors";
 import { canViewReport, type Viewer } from "@/lib/auth/policy";
 import { prisma } from "@/lib/db";
 import { getEnv } from "@/lib/env";
 import { RECOMMENDATION_GROUPS } from "@/lib/formatters/labels";
 import { logError } from "@/lib/logger";
 import { getMarketDataProvider } from "@/lib/providers";
-import { runAnalysis } from "@/lib/analysis/engine";
+import { fetchAndAnalyze } from "@/lib/analysis/build-report";
 import type { ComputedIndicators } from "@/lib/analysis/timeframe";
 import type { GenerateReportInput, ReportsQuery } from "@/lib/validators";
 import type { AnalysisReportData, Horizon, ReportRecord } from "@/types/analysis";
-import { TIMEFRAMES, type OHLCVSeries, type Timeframe } from "@/types/market";
+import type { OHLCVSeries, Timeframe } from "@/types/market";
 
 const isProd = () => getEnv().NODE_ENV === "production";
 
@@ -25,41 +25,8 @@ export async function generateReport(input: GenerateReportInput, viewer: Viewer 
   if (!cfg) throw new HttpError(404, "الرمز غير مدعوم");
   if (input.visibility === "private" && !viewer) throw new HttpError(401, "يجب تسجيل الدخول لإنشاء تقرير خاص");
 
-  const provider = getMarketDataProvider();
-  const safe = <T,>(p: Promise<T>): Promise<T | null> => p.catch((e) => (logError(`report.fetch.${cfg.symbol}`, e), null));
-
-  // 1) جلب البيانات بالتوازي — فشل مصدر لا يوقف التقرير بل يخفض جودة البيانات
-  const [overview, global, dominance, fearGreed, news, ...seriesList] = await Promise.all([
-    safe(provider.getAssetOverview(cfg.symbol)),
-    safe(provider.getGlobalMarketData()),
-    safe(provider.getDominanceData()),
-    safe(provider.getFearGreedIndex()),
-    safe(provider.getMarketNews()),
-    ...TIMEFRAMES.map((tf) => safe(provider.getOHLCV(cfg.symbol, tf))),
-  ]);
-  if (!overview) throw new HttpError(503, "تعذر جلب بيانات الأصل من مزودي البيانات حاليًا. حاول لاحقًا.");
-
-  const series: Partial<Record<Timeframe, OHLCVSeries | null>> = {};
-  TIMEFRAMES.forEach((tf, i) => (series[tf] = seriesList[i] as OHLCVSeries | null));
-
-  const daily = async (sym: string) =>
-    sym === cfg.symbol ? (series["1d"]?.candles ?? null) : ((await safe(provider.getOHLCV(sym, "1d")))?.candles ?? null);
-  const [btcDaily, ethDaily, ethBtcDaily] = await Promise.all([daily("BTC"), daily("ETH"), daily("ETHBTC")]);
-
-  // 2-8) التحليل (دالة نقية)
-  const { report, computed } = runAnalysis({
-    symbol: cfg.symbol,
-    horizon: input.horizon,
-    overview,
-    series,
-    global,
-    dominance,
-    fearGreed,
-    news,
-    btcDaily,
-    ethDaily,
-    ethBtcDaily,
-  });
+  // 1-8) جلب البيانات والتحليل (مشترك مع النسخة الثابتة)
+  const { report, computed, series } = await fetchAndAnalyze(getMarketDataProvider(), cfg.symbol, input.horizon);
 
   // 9) الحفظ
   const isPublic = input.visibility !== "private";

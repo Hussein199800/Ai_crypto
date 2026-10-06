@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { HttpError } from "@/lib/api";
+import { HttpError } from "@/lib/errors";
 import { hashPassword } from "@/lib/auth/password";
 import { appUrl, sendMail } from "@/lib/mailer";
 import { generateToken, hashToken } from "@/lib/security/tokens";

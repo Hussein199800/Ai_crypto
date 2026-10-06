@@ -8,7 +8,7 @@ import { DataFreshness } from "@/components/common/data-freshness";
 import { Skeleton } from "@/components/ui/skeleton";
 import { apiGet, errorMessage } from "@/lib/client/fetcher";
 import { formatCompact, formatNumber, formatPercent, formatRelative } from "@/lib/formatters";
-import type { DashboardData } from "@/lib/services/market";
+import type { DashboardData } from "@/lib/analysis/dashboard";
 import { MarketStatePanel } from "./market-state-panel";
 import { MoversList } from "./movers-list";
 import { LatestReports } from "./latest-reports";

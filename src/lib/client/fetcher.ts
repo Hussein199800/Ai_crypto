@@ -1,3 +1,5 @@
+import { STATIC_MODE } from "@/lib/static-mode";
+
 /** خطأ API بعربية واضحة لعرضه للمستخدم */
 export class ApiClientError extends Error {
   constructor(
@@ -25,7 +27,19 @@ async function parse<T>(res: Response): Promise<T> {
   return body as T;
 }
 
+/** في النسخة الثابتة تُنفَّذ طلبات /api داخل المتصفح بدل الخادم */
+async function staticRequest<T>(method: string, url: string, body?: unknown): Promise<T> {
+  const { localRequest, LocalApiError } = await import("@/lib/static/local-api");
+  try {
+    return (await localRequest(method, url, body)) as T;
+  } catch (e) {
+    if (e instanceof LocalApiError) throw new ApiClientError(e.message, e.status);
+    throw new ApiClientError("حدث خطأ غير متوقع", 500);
+  }
+}
+
 export async function apiGet<T>(url: string): Promise<T> {
+  if (STATIC_MODE) return staticRequest<T>("GET", url);
   let res: Response;
   try {
     res = await fetch(url, { headers: { accept: "application/json" } });
@@ -36,6 +50,7 @@ export async function apiGet<T>(url: string): Promise<T> {
 }
 
 export async function apiSend<T>(url: string, method: "POST" | "PATCH" | "DELETE", body?: unknown): Promise<T> {
+  if (STATIC_MODE) return staticRequest<T>(method, url, body);
   let res: Response;
   try {
     res = await fetch(url, {

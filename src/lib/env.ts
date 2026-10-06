@@ -41,7 +41,9 @@ let cached: ServerEnv | null = null;
 
 export function getEnv(): ServerEnv {
   if (cached && process.env.NODE_ENV !== "test") return cached;
-  const parsed = schema.safeParse(emptyToUndefined(process.env));
+  // في المتصفح (النسخة الثابتة) لا توجد متغيرات خادم — نستخدم القيم الافتراضية فقط بلا أي مفاتيح
+  const source = typeof window === "undefined" ? emptyToUndefined(process.env) : { NODE_ENV: process.env.NODE_ENV };
+  const parsed = schema.safeParse(source);
   if (!parsed.success) {
     // لا نطبع القيم نفسها — أسماء المتغيرات فقط
     const fields = parsed.error.issues.map((i) => i.path.join(".")).join(", ");
