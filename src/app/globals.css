@@ -1,0 +1,103 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* الوضع الفاتح */
+    --background: 160 20% 97%;
+    --foreground: 170 40% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 170 40% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 170 40% 10%;
+    --primary: 142 71% 36%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 165 20% 92%;
+    --secondary-foreground: 170 40% 12%;
+    --muted: 165 18% 93%;
+    --muted-foreground: 168 10% 38%;
+    --accent: 165 22% 90%;
+    --accent-foreground: 170 40% 12%;
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 165 16% 84%;
+    --input: 165 16% 84%;
+    --ring: 142 71% 40%;
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    /* الهوية الداكنة: خلفية #061512 وبطاقات #0B2420 */
+    --background: 168 56% 5.3%;
+    --foreground: 165 32% 92.5%;
+    --card: 170 53% 9.2%;
+    --card-foreground: 165 32% 92.5%;
+    --popover: 170 53% 8%;
+    --popover-foreground: 165 32% 92.5%;
+    --primary: 142 71% 45.3%;
+    --primary-foreground: 168 56% 5%;
+    --secondary: 169 48% 13.5%;
+    --secondary-foreground: 165 32% 92.5%;
+    --muted: 169 45% 12%;
+    --muted-foreground: 166 13% 61%;
+    --accent: 168 45% 15.7%;
+    --accent-foreground: 165 32% 92.5%;
+    --destructive: 0 84% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 168 40% 17%;
+    --input: 168 40% 17%;
+    --ring: 142 71% 45.3%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "kern";
+  }
+
+  .num {
+    @apply font-mono tabular-nums;
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+}
+
+@layer components {
+  .panel {
+    @apply rounded-xl border bg-card text-card-foreground;
+  }
+  .panel-glow {
+    @apply shadow-glow border-positive/40;
+  }
+  .scroll-x {
+    @apply overflow-x-auto overscroll-x-contain;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* تنسيق الطباعة لتصدير التقارير PDF */
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm;
+  }
+  html,
+  body {
+    background: #ffffff !important;
+    color: #0b1f1b !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-avoid-break {
+    break-inside: avoid;
+  }
+}
