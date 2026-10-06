@@ -94,6 +94,21 @@
     background: #ffffff !important;
     color: #0b1f1b !important;
   }
+  /* الطباعة دائمًا بألوان فاتحة لتوفير الحبر ووضوح القراءة */
+  .dark {
+    --background: 0 0% 100%;
+    --foreground: 170 40% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 170 40% 10%;
+    --muted: 165 18% 95%;
+    --muted-foreground: 168 10% 35%;
+    --border: 165 16% 80%;
+    --accent: 165 22% 92%;
+  }
+  .shadow-glow,
+  .shadow-glow-red {
+    box-shadow: none !important;
+  }
   .no-print {
     display: none !important;
   }
