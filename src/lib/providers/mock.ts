@@ -211,6 +211,7 @@ export class MockProvider implements MarketDataProvider {
   async getOrderBook(symbol: string, limit = 500): Promise<OrderBook> {
     const cfg = getAssetConfig(symbol);
     if (!cfg) throw new UnknownSymbolError(symbol);
+    if (cfg.kind === "DOMINANCE" || cfg.kind === "INDEX") throw new Error("لا يوجد دفتر أوامر لمؤشر سوقي");
     const h = generateMockCandles(cfg.symbol, "1h");
     const mid = h[h.length - 1].close;
     const rand = mulberry32(hashString(`book:${cfg.symbol}`));

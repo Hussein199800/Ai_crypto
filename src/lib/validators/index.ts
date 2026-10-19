@@ -60,6 +60,16 @@ export const chartQuerySchema = z.object({
   limit: z.coerce.number().int().min(50).max(1000).default(300),
 });
 
+export const toolsQuerySchema = z.object({
+  timeframe: timeframeSchema.default("4h"),
+  tools: z
+    .string()
+    .max(1000)
+    .regex(/^[a-z0-9,-]*$/, "قائمة الأدوات غير صالحة")
+    .optional()
+    .transform((v) => (v ? v.split(",").filter(Boolean).slice(0, 50) : undefined)),
+});
+
 export const reportIdSchema = z.string().trim().regex(/^c[a-z0-9]{20,32}$/, "معرّف التقرير غير صالح");
 
 export const watchlistAddSchema = z.object({ symbol: symbolSchema });

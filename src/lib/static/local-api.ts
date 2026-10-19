@@ -8,7 +8,8 @@ import { RECOMMENDATION_GROUPS } from "@/lib/formatters/labels";
 import { ProviderError, UnknownSymbolError } from "@/lib/providers/errors";
 import { LiveProvider } from "@/lib/providers/live";
 import { rateLimit } from "@/lib/security/rate-limit";
-import { chartQuerySchema, firstError, generateReportSchema, reportsQuerySchema, symbolSchema } from "@/lib/validators";
+import { chartQuerySchema, firstError, generateReportSchema, reportsQuerySchema, symbolSchema, toolsQuerySchema } from "@/lib/validators";
+import { computeTools } from "@/lib/tools/run";
 import type { ReportRecord } from "@/types/analysis";
 import type { MarketDataProvider } from "@/types/market";
 import { BrowserSnapshotStore } from "./browser-snapshots";
@@ -75,6 +76,12 @@ async function handle(method: string, url: string, body?: unknown): Promise<unkn
     const symbol = symbolSchema.parse(decodeURIComponent(seg[2]));
     const cq = chartQuerySchema.parse(q);
     return buildChartData(getProvider(), symbol, cq.timeframe, cq.limit);
+  }
+
+  if (method === "GET" && seg[1] === "tools" && seg[2]) {
+    const symbol = symbolSchema.parse(decodeURIComponent(seg[2]));
+    const tq = toolsQuerySchema.parse(q);
+    return computeTools(getProvider(), symbol, tq.timeframe, tq.tools);
   }
 
   if (method === "GET" && path === "/api/reports") {

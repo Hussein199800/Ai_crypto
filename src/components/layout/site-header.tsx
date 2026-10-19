@@ -14,6 +14,7 @@ import { STATIC_MODE } from "@/lib/static-mode";
 const NAV = [
   { href: "/", label: "الرئيسية" },
   { href: "/reports", label: "التقارير" },
+  { href: "/tools", label: "الأدوات" },
   { href: "/charts", label: "الرسوم البيانية" },
   { href: "/watchlist", label: "المفضلة" },
   { href: "/about", label: "حول المنصة" },

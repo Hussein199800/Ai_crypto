@@ -20,6 +20,7 @@ export function TechnicalSection({ report, printMode = false }: { report: Analys
       icon={LineChart}
       subtitle="تحليل 5 أطر زمنية. المساهمة = أثر المؤشر بالنقاط على الدرجة النهائية بعد تطبيق وزن الفئة ووزن الإطار الزمني في الأفق المختار."
     >
+      {report.consensus && <ConsensusBlock report={report} />}
       {printMode ? (
         <div className="space-y-6">
           {report.timeframes.map((t) => (
@@ -71,6 +72,42 @@ function TfSummary({ t, weight }: { t: TimeframeAnalysis; weight: number }) {
       <span className="text-muted-foreground">● {t.counts.neutral}</span>
       <span className="text-negative">▼ {t.counts.negative}</span>
       {t.note && <span className="text-warning">{t.note}</span>}
+    </div>
+  );
+}
+
+function ConsensusBlock({ report }: { report: AnalysisReportData }) {
+  const c = report.consensus!;
+  const box = (title: string, x: typeof c.ma) => {
+    const tone = x.score > 0.1 ? "text-positive" : x.score < -0.1 ? "text-negative" : "text-warning";
+    return (
+      <div className="rounded-lg border bg-background/40 p-3">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-sm font-semibold">{title}</span>
+          <span className={cn("text-sm font-bold", tone)}>{x.label}</span>
+        </div>
+        <div className="mt-2 flex gap-3 text-xs">
+          <span className="text-positive">شراء: <span className="num">{x.buy}</span></span>
+          <span className="text-muted-foreground">محايد: <span className="num">{x.neutral}</span></span>
+          <span className="text-negative">بيع: <span className="num">{x.sell}</span></span>
+        </div>
+        <div className="mt-2 flex flex-wrap gap-1">
+          {x.items.filter((i) => i.value !== null).map((i) => (
+            <span key={i.name} className={cn("rounded border px-1.5 py-0.5 text-[10px]", i.action === "BUY" ? "border-positive/40 text-positive" : i.action === "SELL" ? "border-negative/40 text-negative" : "text-muted-foreground")} dir="ltr">
+              {i.name}
+            </span>
+          ))}
+        </div>
+      </div>
+    );
+  };
+  return (
+    <div className="mb-4">
+      <div className="grid gap-3 md:grid-cols-2">
+        {box("إجماع المتوسطات المتحركة (12)", c.ma)}
+        {box("إجماع المذبذبات (6)", c.oscillators)}
+      </div>
+      <p className="mt-2 text-[11px] text-muted-foreground">على إطار {TIMEFRAME_LABELS[c.timeframe]}. الإجماع معروض للمقارنة فقط ولا يُضاف إلى الدرجة لأن نفس المؤشرات داخلة فيها أصلًا (تجنبًا للحساب المزدوج).</p>
     </div>
   );
 }

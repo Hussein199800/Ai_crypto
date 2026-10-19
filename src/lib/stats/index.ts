@@ -285,7 +285,8 @@ export function dominantCycles(values: number[], top = 3, minPeriod = 5): CycleR
   const slope = sxy / sxx;
   const detr = values.map((v, i) => v - (my + slope * (i - mx)));
   const spectrum: { k: number; re: number; im: number; p: number }[] = [];
-  for (let k = 1; k <= Math.floor(n / minPeriod); k++) {
+  // k ≥ 2 يستبعد دورة بطول النافذة كاملة (بقايا الاتجاه)
+  for (let k = 2; k <= Math.floor(n / minPeriod); k++) {
     let re = 0;
     let im = 0;
     for (let t = 0; t < n; t++) {

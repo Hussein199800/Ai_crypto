@@ -25,6 +25,8 @@ import { buildMomentumAnalysis, buildTrendAnalysis, buildVolumeAnalysis } from "
 import { makeSignal } from "./signal";
 import { buildSummary } from "./summary";
 import { analyzeTimeframe, type ComputedIndicators, type TimeframeResult } from "./timeframe";
+import { maConsensus, oscillatorConsensus } from "@/lib/tools/analyzers/consensus";
+import { analyzeStructure } from "@/lib/tools/analyzers/structure";
 
 export interface AnalysisInput {
   symbol: string;
@@ -62,9 +64,11 @@ export function runAnalysis(input: AnalysisInput): AnalysisOutput {
 
   // 1) تحليل كل إطار زمني على الشموع المكتملة فقط
   const results: Partial<Record<Timeframe, TimeframeResult>> = {};
+  const closedByTf: Partial<Record<Timeframe, OHLCV[]>> = {};
   for (const tf of TIMEFRAMES) {
     const s = input.series[tf];
     const candles = s ? closedCandles(s.candles, tf, now) : [];
+    closedByTf[tf] = candles;
     results[tf] = analyzeTimeframe(candles, tf);
   }
 
@@ -163,6 +167,14 @@ export function runAnalysis(input: AnalysisInput): AnalysisOutput {
   const positiveShare = posW + negW > 0 ? posW / (posW + negW) : 0.5;
 
   const trend = buildTrendAnalysis(results, primary);
+  const primaryCandles = closedByTf[primaryTf] ?? [];
+  if (primaryCandles.length >= 50) {
+    const ms = analyzeStructure(primaryCandles);
+    trend.structureEvent = ms.lastEvent
+      ? { type: ms.lastEvent.type, direction: ms.lastEvent.direction, level: ms.lastEvent.level, barsAgo: primaryCandles.length - 1 - ms.lastEvent.index }
+      : null;
+  }
+  const consensus = primaryCandles.length >= 50 ? { timeframe: primaryTf, ma: maConsensus(primaryCandles), oscillators: oscillatorConsensus(primaryCandles) } : undefined;
 
   // 7) الدرجة والثقة والتوصية
   const scoring = computeScore({
@@ -248,6 +260,7 @@ export function runAnalysis(input: AnalysisInput): AnalysisOutput {
       levels,
       scenarios,
       summary,
+      consensus,
       indicatorReading: indicatorReading(cfg.kind, cfg.symbol, input, trend.medium),
       sources,
       isMock: dataQuality.isMock,

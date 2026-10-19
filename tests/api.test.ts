@@ -158,3 +158,18 @@ describe("صلاحيات المستخدم في الـ API", () => {
     await expect(generateReport({ symbol: "BTC", horizon: "MEDIUM", visibility: "private" }, null)).rejects.toThrow("يجب تسجيل الدخول");
   });
 });
+
+describe("مسار الأدوات /api/tools", () => {
+  it("يرفض الإطار الزمني غير الصالح ويعيد النتائج للطلب الصالح", async () => {
+    const { GET: getTools } = await import("@/app/api/tools/[symbol]/route");
+    const bad = await getTools(new Request(`${ORIGIN}/api/tools/BTC?timeframe=9m`), params({ symbol: "BTC" }));
+    expect(bad.status).toBe(400);
+    const badList = await getTools(new Request(`${ORIGIN}/api/tools/BTC?tools=<x>`), params({ symbol: "BTC" }));
+    expect(badList.status).toBe(400);
+    const ok = await getTools(new Request(`${ORIGIN}/api/tools/btc?timeframe=1d&tools=ma-consensus,ichimoku`), params({ symbol: "btc" }));
+    expect(ok.status).toBe(200);
+    const body = await ok.json();
+    expect(body.results.map((r: { id: string }) => r.id)).toEqual(["ma-consensus", "ichimoku"]);
+    expect(body.isMock).toBe(true);
+  });
+});

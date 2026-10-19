@@ -104,6 +104,8 @@ export interface TrendAnalysis {
     description: string;
   };
   zone: "NEAR_SUPPORT" | "NEAR_RESISTANCE" | "MIDDLE" | "UNKNOWN";
+  /** آخر كسر هيكلي (BOS / CHOCH) على الإطار المرجعي — غير موجود في التقارير القديمة */
+  structureEvent?: { type: "BOS" | "CHOCH"; direction: "UP" | "DOWN"; level: number; barsAgo: number } | null;
   zoneDescription: string;
   description: string;
 }
@@ -254,6 +256,15 @@ export interface ReportSummary {
   decisionReasons: string[];
 }
 
+export interface ConsensusSummaryLite {
+  buy: number;
+  sell: number;
+  neutral: number;
+  score: number;
+  label: string;
+  items: { name: string; value: number | null; action: "BUY" | "SELL" | "NEUTRAL" }[];
+}
+
 export interface AnalysisReportData {
   version: 1;
   symbol: string;
@@ -275,6 +286,12 @@ export interface AnalysisReportData {
   levels: KeyLevels;
   scenarios: Scenario[];
   summary: ReportSummary;
+  /** إجماع المتوسطات (12) والمذبذبات (6) على الإطار المرجعي — للعرض فقط ولا يدخل في الدرجة */
+  consensus?: {
+    timeframe: Timeframe;
+    ma: ConsensusSummaryLite;
+    oscillators: ConsensusSummaryLite;
+  };
   /** قراءة خاصة للمؤشرات السوقية والعملات المستقرة */
   indicatorReading: string | null;
   sources: string[];

@@ -47,6 +47,20 @@ export function TrendSection({ report }: { report: AnalysisReportData }) {
           }
         />
         <KV label="منطقة السعر الحالية" value={<span className="font-normal">{t.zoneDescription}</span>} tone={t.zone === "NEAR_SUPPORT" ? "positive" : t.zone === "NEAR_RESISTANCE" ? "warning" : undefined} />
+        {t.structureEvent !== undefined && (
+          <KV
+            label="آخر كسر هيكلي (BOS / CHOCH)"
+            className="md:col-span-3"
+            value={
+              <span className="font-normal">
+                {t.structureEvent
+                  ? `${t.structureEvent.type === "BOS" ? "كسر هيكل BOS (استمرار)" : "تغير الطابع CHOCH (انعكاس محتمل)"} ${t.structureEvent.direction === "UP" ? "صاعد" : "هابط"} عند ${formatPrice(t.structureEvent.level)} قبل ${t.structureEvent.barsAgo} شمعة`
+                  : "لم يُرصد كسر هيكلي بالإغلاق على الإطار المرجعي."}
+              </span>
+            }
+            tone={t.structureEvent ? (t.structureEvent.direction === "UP" ? "positive" : "negative") : undefined}
+          />
+        )}
       </div>
     </ReportSection>
   );
