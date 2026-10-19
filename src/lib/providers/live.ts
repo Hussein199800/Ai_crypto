@@ -12,6 +12,7 @@ import type {
   MarketNewsResult,
   OHLCV,
   OHLCVSeries,
+  OrderBook,
   Timeframe,
 } from "@/types/market";
 import { AlternativeMeClient } from "./alternative-me";
@@ -306,6 +307,20 @@ export class LiveProvider implements MarketDataProvider {
       note = `${note}. البيانات التاريخية غير كافية (${candles.length} شمعة)`;
     }
     return { symbol, timeframe: tf, candles, meta: { source: source || "غير متاح", fetchedAt, isStale: false, isMock: false, note } };
+  }
+
+  // ───────────── دفتر الأوامر ─────────────
+
+  async getOrderBook(symbol: string, limit = 500): Promise<OrderBook> {
+    const cfg = getAssetConfig(symbol);
+    if (!cfg) throw new UnknownSymbolError(symbol);
+    if (!this.binance.supports(cfg.symbol)) throw new ProviderError("Binance", "دفتر الأوامر غير متاح لهذا الأصل", undefined, false);
+    const r = await cached(`depth:${cfg.symbol}:${limit}`, 15_000, async (): Promise<OrderBook> => {
+      const d = await this.binance.depth(cfg.symbol, limit);
+      const map = (rows: [string, string][]) => rows.map(([p, q]) => ({ price: Number(p), quantity: Number(q) }));
+      return { symbol: cfg.symbol, bids: map(d.bids), asks: map(d.asks), meta: { source: "Binance", fetchedAt: new Date().toISOString(), isStale: false, isMock: false } };
+    });
+    return markStale(r.value, r.stale, r.storedAt);
   }
 
   // ───────────── السوق العام ─────────────

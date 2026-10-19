@@ -10,6 +10,7 @@ import type {
   MarketNewsResult,
   OHLCV,
   OHLCVSeries,
+  OrderBook,
   Timeframe,
 } from "@/types/market";
 import { buildDominanceData } from "@/lib/analysis/dominance";
@@ -89,7 +90,9 @@ export function generateMockCandles(symbol: string, tf: Timeframe, now = Date.no
     const low = Math.max(0, Math.min(open, close) - wick * rand());
     const move = Math.abs(close - open) / Math.max(open, 1e-12);
     const volume = isDominance ? 0 : baseVolume * (0.6 + rand() * 0.8) * (1 + move / Math.max(vol, 1e-9) * 0.4);
-    candles.push({ time: start + i * TIMEFRAME_MS[tf], open, high, low, close, volume });
+    // حصة الشراء المبادر تميل للصعود في الشموع الخضراء (تقدير تجريبي)
+    const takerShare = Math.min(0.85, Math.max(0.15, 0.5 + (close >= open ? 0.12 : -0.12) + (rand() - 0.5) * 0.2));
+    candles.push({ time: start + i * TIMEFRAME_MS[tf], open, high, low, close, volume, takerBuyVolume: volume * takerShare });
     prevClose = close;
   }
   return candles;
@@ -203,6 +206,21 @@ export class MockProvider implements MarketDataProvider {
     });
     const latest = history[history.length - 1];
     return { ...latest, classificationAr: classifyFearGreedAr(latest.value), history, meta: meta() };
+  }
+
+  async getOrderBook(symbol: string, limit = 500): Promise<OrderBook> {
+    const cfg = getAssetConfig(symbol);
+    if (!cfg) throw new UnknownSymbolError(symbol);
+    const h = generateMockCandles(cfg.symbol, "1h");
+    const mid = h[h.length - 1].close;
+    const rand = mulberry32(hashString(`book:${cfg.symbol}`));
+    const tick = mid * 0.0004;
+    const side = (dir: 1 | -1) =>
+      Array.from({ length: limit }, (_, i) => {
+        const wall = rand() < 0.03 ? 8 + rand() * 12 : 1;
+        return { price: mid + dir * tick * (i + 1), quantity: ((1000 / mid) * (0.3 + rand()) * wall) / (1 + i / 200) };
+      });
+    return { symbol: cfg.symbol, bids: side(-1), asks: side(1), meta: meta() };
   }
 
   async getMarketNews(): Promise<MarketNewsResult> {

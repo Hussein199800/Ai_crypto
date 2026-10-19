@@ -44,7 +44,14 @@ export class BinanceClient {
       low: Number(k[3]),
       close: Number(k[4]),
       volume: Number(k[7]),
+      takerBuyVolume: Number(k[10]),
     }));
+  }
+
+  async depth(symbol: string, limit = 500): Promise<{ bids: [string, string][]; asks: [string, string][] }> {
+    const pair = getAssetConfig(symbol)?.binanceSymbol;
+    if (!pair) throw new NotSupportedError(NAME, symbol);
+    return fetchJson(`${this.base}/api/v3/depth?symbol=${pair}&limit=${limit}`, { provider: NAME, headers: this.headers, retries: 2 });
   }
 
   async spreadPct(symbol: string): Promise<number | null> {

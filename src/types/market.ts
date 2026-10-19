@@ -24,6 +24,8 @@ export interface OHLCV {
   low: number;
   close: number;
   volume: number;
+  /** حجم الشراء من الطرف المبادر (Taker Buy) بنفس وحدة volume — متاح من Binance فقط */
+  takerBuyVolume?: number;
 }
 
 export interface OHLCVSeries {
@@ -129,4 +131,18 @@ export interface MarketDataProvider {
   getDominanceData(): Promise<DominanceData>;
   getFearGreedIndex(): Promise<FearGreedData>;
   getMarketNews(): Promise<MarketNewsResult>;
+  /** دفتر الأوامر (اختياري — غير متاح لكل الأصول) */
+  getOrderBook?(symbol: string, limit?: number): Promise<OrderBook>;
+}
+
+export interface OrderBookLevel {
+  price: number;
+  quantity: number;
+}
+
+export interface OrderBook {
+  symbol: string;
+  bids: OrderBookLevel[];
+  asks: OrderBookLevel[];
+  meta: DataMeta;
 }
