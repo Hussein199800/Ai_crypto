@@ -1,7 +1,7 @@
 import { ema, last } from "@/lib/indicators";
 import { ichimoku, linearRegression, tdSequential, williamsFractals } from "@/lib/indicators/extra";
 import { analyzeStructure } from "../analyzers/structure";
-import { MIN_CANDLES, num, pctText, px, toneOf } from "../helpers";
+import { MIN_CANDLES, num, pctAbs, pctText, px, toneOf } from "../helpers";
 import { unavailable, verdictOf, type ToolDefinition } from "../types";
 
 export const trendTools: ToolDefinition[] = [
@@ -118,7 +118,7 @@ export const trendTools: ToolDefinition[] = [
         headline: bullPairs === pairs ? "الشريط مرتب صعوديًا بالكامل" : bullPairs === 0 ? "الشريط مرتب هبوطيًا بالكامل" : `ترتيب مختلط (${bullPairs}/${pairs} صعودي)`,
         score,
         metrics: [
-          { label: "عرض الشريط", value: pctText(width), tone: "info" },
+          { label: "عرض الشريط", value: pctAbs(width), tone: "info" },
           { label: "الاتساع", value: width > widthPrev ? "يتسع (الاتجاه يتقوى)" : "يضيق (الاتجاه يضعف)", tone: width > widthPrev ? "positive" : "warning" },
         ],
         details: ["الترتيب الكامل للمتوسطات من الأقصر إلى الأطول يدل على اتجاه ناضج، والتشابك يدل على تذبذب أو بداية انعكاس."],

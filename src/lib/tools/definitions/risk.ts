@@ -1,6 +1,6 @@
 import { atr, last } from "@/lib/indicators";
 import { supportResistance } from "@/lib/indicators/levels";
-import { MIN_CANDLES, num, pctText, px } from "../helpers";
+import { MIN_CANDLES, num, pctAbs, pctText, px } from "../helpers";
 import { unavailable, type ToolDefinition } from "../types";
 
 export const riskTools: ToolDefinition[] = [
@@ -31,7 +31,7 @@ export const riskTools: ToolDefinition[] = [
         headline: `وقف مقترح ${px(ctx, stop)} (${pctText((-riskPerUnit / price) * 100)})${rr[0] ? ` — العائد/المخاطرة للهدف الأول ${num(rr[0], 2)}R` : ""}`,
         score: null,
         metrics: [
-          { label: "ATR (14)", value: `${px(ctx, a)} (${pctText((a / price) * 100)})` },
+          { label: "ATR (14)", value: `${px(ctx, a)} (${pctAbs((a / price) * 100)})` },
           { label: "الوقف المقترح", value: px(ctx, stop), tone: "negative" },
           ...targets.map((t, i) => ({ label: `الهدف ${i + 1} (مقاومة)`, value: `${px(ctx, t)} · ${num(rr[i], 2)}R`, tone: rr[i] >= 2 ? ("positive" as const) : ("warning" as const) })),
         ],

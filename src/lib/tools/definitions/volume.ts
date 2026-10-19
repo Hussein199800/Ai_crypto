@@ -1,7 +1,7 @@
-import { formatCompact } from "@/lib/formatters";
+import { bidi, formatCompact } from "@/lib/formatters";
 import { analyzeOrderBook } from "../analyzers/orderbook";
 import { volumeDelta, volumeProfile } from "../analyzers/volume";
-import { MIN_CANDLES, num, pctText, px } from "../helpers";
+import { MIN_CANDLES, num, pctAbs, pctText, px } from "../helpers";
 import { unavailable, verdictOf, type ToolDefinition } from "../types";
 
 export const volumeTools: ToolDefinition[] = [
@@ -95,7 +95,7 @@ export const volumeTools: ToolDefinition[] = [
         headline: d2.imbalance > 0.15 ? "الطلبات (BIDS) أعمق — ضغط شرائي في الدفتر" : d2.imbalance < -0.15 ? "العروض (ASKS) أعمق — ضغط بيعي في الدفتر" : "دفتر متوازن نسبيًا",
         score,
         metrics: [
-          { label: "الفارق Spread", value: pctText(ob.spreadPct, 3) },
+          { label: "الفارق Spread", value: pctAbs(ob.spreadPct, 3) },
           { label: "عدم التوازن ±2%", value: pctText(d2.imbalance * 100, 1), tone: d2.imbalance > 0 ? "positive" : "negative" },
         ],
         details: [
@@ -103,8 +103,8 @@ export const volumeTools: ToolDefinition[] = [
           `المصدر: ${ctx.orderBook.meta.source}${ctx.orderBook.meta.isMock ? " (تجريبي)" : ""}.`,
         ],
         levels: [
-          ...ob.askWalls.map((w) => ({ label: `جدار بيع ${formatCompact(w.notional)}`, price: w.price, tone: "negative" as const })),
-          ...ob.bidWalls.map((w) => ({ label: `جدار شراء ${formatCompact(w.notional)}`, price: w.price, tone: "positive" as const })),
+          ...ob.askWalls.map((w) => ({ label: `جدار بيع ${bidi(formatCompact(w.notional))}`, price: w.price, tone: "negative" as const })),
+          ...ob.bidWalls.map((w) => ({ label: `جدار شراء ${bidi(formatCompact(w.notional))}`, price: w.price, tone: "positive" as const })),
         ],
         table: {
           columns: ["النطاق", "الطلبات BIDS", "العروض ASKS", "عدم التوازن"],

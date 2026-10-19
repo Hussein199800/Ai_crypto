@@ -157,8 +157,8 @@ export function ToolDetails({ result, kind }: { result: ToolResult; kind: string
             {result.table.rows.map((r, i) => (
               <TableRow key={i}>
                 {r.cells.map((cell, j) => (
-                  <TableCell key={j} className={cn("num whitespace-nowrap text-xs", j > 0 && r.tone && TONE_TEXT[r.tone])}>
-                    {cell}
+                  <TableCell key={j} className={cn("whitespace-nowrap text-xs", j > 0 && r.tone && TONE_TEXT[r.tone])}>
+                    <span className="num">{cell}</span>
                   </TableCell>
                 ))}
               </TableRow>

@@ -26,11 +26,13 @@ export function IndicatorTable({ signals }: { signals: IndicatorSignal[] }) {
                 {s.nameEn} · {CATEGORY_LABELS[s.category]}
               </div>
             </TableCell>
-            <TableCell className="num whitespace-nowrap text-xs">{s.valueText}</TableCell>
+            <TableCell className="whitespace-nowrap text-xs">
+              <span className="num">{s.valueText}</span>
+            </TableCell>
             <TableCell className="text-xs">{s.status}</TableCell>
             <TableCell>{s.available ? <DirectionBadge value={s.direction} /> : <span className="text-xs text-muted-foreground">لا يدخل في الحساب</span>}</TableCell>
-            <TableCell className={cn("num whitespace-nowrap text-xs font-semibold", s.contribution > 0 ? "text-positive" : s.contribution < 0 ? "text-negative" : "text-muted-foreground")}>
-              {s.available ? `${s.contribution > 0 ? "+" : ""}${s.contribution.toFixed(2)}` : "—"}
+            <TableCell className={cn("whitespace-nowrap text-xs font-semibold", s.contribution > 0 ? "text-positive" : s.contribution < 0 ? "text-negative" : "text-muted-foreground")}>
+              <span className="num">{s.available ? `${s.contribution > 0 ? "+" : ""}${s.contribution.toFixed(2)}` : "—"}</span>
             </TableCell>
             <TableCell className="text-xs leading-relaxed text-muted-foreground">{s.explanation}</TableCell>
           </TableRow>

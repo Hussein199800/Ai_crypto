@@ -141,7 +141,7 @@ export function ToolsWorkspace() {
           <div className="space-y-1">
             <div className="flex items-baseline gap-2">
               <span className="text-lg font-bold">{cfg?.display}</span>
-              <span className="num text-lg">{formatAssetValue(q.data?.price ?? null, kind)}</span>
+              <span className="num text-lg">{q.isLoading ? "…" : formatAssetValue(q.data?.price ?? null, kind)}</span>
               <span className="text-xs text-muted-foreground">· {TIMEFRAME_LABELS[timeframe]}</span>
             </div>
             {q.data && <DataFreshness meta={{ source: q.data.sources.join("، ") || "—", fetchedAt: q.data.generatedAt, isStale: q.data.isStale, isMock: q.data.isMock }} />}

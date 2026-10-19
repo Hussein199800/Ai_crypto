@@ -1,6 +1,6 @@
 import { arima, dominantCycles, garch11, gaussianHmm, logReturns, monteCarloGBM } from "@/lib/stats";
 import { MONTHS_AR, seasonality } from "../analyzers/seasonality";
-import { num, pctText, px } from "../helpers";
+import { num, pctAbs, pctText, px } from "../helpers";
 import { unavailable, verdictOf, type ToolDefinition } from "../types";
 
 const STAT_NOTE = "نموذج إحصائي مبني على البيانات التاريخية فقط — النتائج نطاقات احتمالية وليست توقعًا مؤكدًا، ولا تأخذ الأخبار أو الأحداث المفاجئة بالحسبان.";
@@ -30,7 +30,7 @@ export const statisticsTools: ToolDefinition[] = [
           { label: "الوسيط (50%)", value: px(ctx, mc.percentiles.p50), tone: "info" },
           { label: "نطاق 50% (25–75)", value: `${px(ctx, mc.percentiles.p25)} – ${px(ctx, mc.percentiles.p75)}` },
           { label: "نطاق 90% (5–95)", value: `${px(ctx, mc.percentiles.p5)} – ${px(ctx, mc.percentiles.p95)}` },
-          { label: "التقلب اليومي", value: pctText(mc.volatility * 100) },
+          { label: "التقلب اليومي", value: pctAbs(mc.volatility * 100) },
         ],
         details: [`بارامترات من آخر ${closes.length} يومًا: متوسط العائد اليومي ${pctText(mc.drift * 100, 3)}.`, STAT_NOTE],
         levels: [
@@ -69,8 +69,8 @@ export const statisticsTools: ToolDefinition[] = [
         headline: rising ? "التقلب الحالي أعلى من متوسطه طويل المدى" : "التقلب الحالي أدنى من متوسطه طويل المدى",
         score: null,
         metrics: [
-          { label: "التقلب اليومي الحالي", value: pctText(g.currentVol * 100), tone: rising ? "warning" : "neutral" },
-          { label: "التقلب طويل المدى", value: pctText(g.longRunVol * 100) },
+          { label: "التقلب اليومي الحالي", value: pctAbs(g.currentVol * 100), tone: rising ? "warning" : "neutral" },
+          { label: "التقلب طويل المدى", value: pctAbs(g.longRunVol * 100) },
           { label: "الاستمرارية α+β", value: num(g.persistence, 3) },
         ],
         details: [`المعاملات: α=${num(g.alpha, 2)}، β=${num(g.beta, 2)}. استمرارية قريبة من 1 تعني أن صدمات التقلب تدوم طويلًا.`, STAT_NOTE],
@@ -78,7 +78,7 @@ export const statisticsTools: ToolDefinition[] = [
           columns: ["الأفق", "التقلب المتوقع", "نطاق ±1σ", "نطاق ±2σ"],
           rows: [1, 7, 30].map((d) => {
             const v = band(d);
-            return { cells: [`${d} يوم`, pctText(v * 100), `${px(ctx, price * Math.exp(-v))} – ${px(ctx, price * Math.exp(v))}`, `${px(ctx, price * Math.exp(-2 * v))} – ${px(ctx, price * Math.exp(2 * v))}`] };
+            return { cells: [`${d} يوم`, pctAbs(v * 100), `${px(ctx, price * Math.exp(-v))} – ${px(ctx, price * Math.exp(v))}`, `${px(ctx, price * Math.exp(-2 * v))} – ${px(ctx, price * Math.exp(2 * v))}`] };
           }),
         },
         timeframe: "1d",
@@ -110,11 +110,11 @@ export const statisticsTools: ToolDefinition[] = [
         verdict: verdictOf(score, 0.3),
         headline: `النظام الأرجح حاليًا: ${names[cur]} (${num(hmm.current[cur] * 100, 0)}%) منذ ${streak} يوم`,
         score,
-        metrics: hmm.current.map((p, i) => ({ label: names[i], value: pctText(p * 100, 0), tone: i === 2 ? "positive" : i === 0 ? "negative" : "neutral" })),
+        metrics: hmm.current.map((p, i) => ({ label: names[i], value: pctAbs(p * 100, 0), tone: i === 2 ? "positive" : i === 0 ? "negative" : "neutral" })),
         details: ["نموذج يفترض أن السوق ينتقل بين 3 حالات خفية لكل منها متوسط عائد وتقلب مختلف، ويقدّرها من العوائد اليومية (Baum-Welch).", STAT_NOTE],
         table: {
           columns: ["الحالة", "متوسط العائد اليومي", "التقلب", "احتمال البقاء"],
-          rows: hmm.states.map((s, i) => ({ cells: [names[i], pctText(s.mean * 100, 3), pctText(s.std * 100), pctText(hmm.transition[i][i] * 100, 0)], tone: i === 2 ? "positive" : i === 0 ? "negative" : "neutral" })),
+          rows: hmm.states.map((s, i) => ({ cells: [names[i], pctText(s.mean * 100, 3), pctAbs(s.std * 100), pctAbs(hmm.transition[i][i] * 100, 0)], tone: i === 2 ? "positive" : i === 0 ? "negative" : "neutral" })),
         },
         timeframe: "1d",
       };
@@ -142,11 +142,11 @@ export const statisticsTools: ToolDefinition[] = [
         score,
         metrics: [
           { label: "طول الدورة", value: `${num(main.period, 0)} شمعة` },
-          { label: "حصة الطيف", value: pctText(main.power * 100, 0), tone: main.power > 0.2 ? "info" : "neutral" },
+          { label: "حصة الطيف", value: pctAbs(main.power * 100, 0), tone: main.power > 0.2 ? "info" : "neutral" },
           { label: "التحول التالي تقريبًا", value: `بعد ~${main.barsToTurn} شمعة` },
         ],
         details: ["تحويل فورييه على لوغاريتم السعر بعد إزالة الاتجاه الخطي. الدورات في الأسواق غير ثابتة وقد تتغير أطوالها، وحصة طيف منخفضة تعني دورة ضعيفة.", STAT_NOTE],
-        table: { columns: ["الدورة (شمعة)", "حصة الطيف", "المرحلة", "التحول بعد"], rows: cycles.map((c) => ({ cells: [num(c.period, 1), pctText(c.power * 100, 0), c.phase === "RISING" ? "صعود" : "هبوط", `${c.barsToTurn} شمعة`], tone: c.phase === "RISING" ? "positive" : "negative" })) },
+        table: { columns: ["الدورة (شمعة)", "حصة الطيف", "المرحلة", "التحول بعد"], rows: cycles.map((c) => ({ cells: [num(c.period, 1), pctAbs(c.power * 100, 0), c.phase === "RISING" ? "صعود" : "هبوط", `${c.barsToTurn} شمعة`], tone: c.phase === "RISING" ? "positive" : "negative" })) },
       };
     },
   },

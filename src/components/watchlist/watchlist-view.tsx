@@ -129,10 +129,10 @@ export function WatchlistView() {
                       <div className="font-semibold">{cfg?.display ?? symbol}</div>
                       <div className="text-xs text-muted-foreground">{cfg?.nameAr}</div>
                     </TableCell>
-                    <TableCell className="num whitespace-nowrap">{q.isLoading ? <Skeleton className="h-4 w-16" /> : formatAssetValue(asset?.price, cfg?.kind ?? "CRYPTO")}</TableCell>
+                    <TableCell className="whitespace-nowrap">{q.isLoading ? <Skeleton className="h-4 w-16" /> : <span className="num">{formatAssetValue(asset?.price, cfg?.kind ?? "CRYPTO")}</span>}</TableCell>
                     <TableCell>{q.isLoading ? <Skeleton className="h-4 w-12" /> : <ChangeBadge value={asset?.change24h} />}</TableCell>
                     <TableCell>{q.isLoading ? <Skeleton className="h-4 w-12" /> : <ChangeBadge value={asset?.change7d} />}</TableCell>
-                    <TableCell className="num">
+                    <TableCell>
                       {asset?.analysis ? (
                         <span>
                           <span className="font-bold">{asset.analysis.score}</span>/100

@@ -5,7 +5,7 @@ import type { Timeframe } from "@/types/market";
 import { candleAnatomy } from "../analyzers/candle";
 import { genericDivergence } from "../analyzers/divergence";
 import { analyzeStructure } from "../analyzers/structure";
-import { MIN_CANDLES, num, pctText } from "../helpers";
+import { MIN_CANDLES, num, pctAbs } from "../helpers";
 import { unavailable, verdictOf, type ToolDefinition } from "../types";
 
 const DIV_AR = { BULLISH: "انفراج إيجابي", BEARISH: "انفراج سلبي", HIDDEN_BULLISH: "انفراج مخفي إيجابي (استمرار صعود)", HIDDEN_BEARISH: "انفراج مخفي سلبي (استمرار هبوط)" } as const;
@@ -124,9 +124,9 @@ export const momentumTools: ToolDefinition[] = [
         headline: an.patterns[0]?.nameAr ?? (an.direction === "UP" ? "شمعة صاعدة دون نمط مميز" : an.direction === "DOWN" ? "شمعة هابطة دون نمط مميز" : "شمعة محايدة"),
         score: Math.max(-1, Math.min(1, score)),
         metrics: [
-          { label: "الجسم", value: pctText(an.bodyPct, 0) },
-          { label: "الذيل العلوي", value: pctText(an.upperWickPct, 0) },
-          { label: "الذيل السفلي", value: pctText(an.lowerWickPct, 0) },
+          { label: "الجسم", value: pctAbs(an.bodyPct, 0) },
+          { label: "الذيل العلوي", value: pctAbs(an.upperWickPct, 0) },
+          { label: "الذيل السفلي", value: pctAbs(an.lowerWickPct, 0) },
           { label: "المدى / ATR", value: an.rangeVsAtr !== null ? `${num(an.rangeVsAtr, 2)}x` : "—", tone: an.rangeVsAtr !== null && an.rangeVsAtr > 1.5 ? "warning" : "neutral" },
           ...(volPace !== null ? [{ label: "وتيرة الحجم", value: `${num(volPace, 2)}x من المتوسط`, tone: volPace > 1.3 ? ("info" as const) : ("neutral" as const) }] : []),
         ],
@@ -176,7 +176,7 @@ export const momentumTools: ToolDefinition[] = [
         metrics: [
           { label: "الحالة", value: bars > 0 ? "مضغوط" : fired ? "انطلاق" : "طبيعي", tone: bars > 0 ? "warning" : fired ? "info" : "neutral" },
           { label: "اتجاه الزخم", value: dir > 0 ? "صاعد" : dir < 0 ? "هابط" : "مستوٍ", tone: dir > 0 ? "positive" : dir < 0 ? "negative" : "neutral" },
-          { label: "ATR %", value: pctText(atrPct) },
+          { label: "ATR %", value: pctAbs(atrPct) },
         ],
         details: ["الانضغاط = دخول نطاقات بولينجر داخل قناة كيلتنر، أي انخفاض التقلب. بعد الانضغاط تأتي غالبًا حركة قوية، لكن اتجاهها غير مضمون؛ زخم الانضغاط يرجّح الاتجاه فقط."],
       };

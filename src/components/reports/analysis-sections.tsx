@@ -1,5 +1,5 @@
 import { Activity, BarChart3, Compass, Droplets, Globe2 } from "lucide-react";
-import { formatCompact, formatNumber, formatPercent, formatPrice, formatDateTime } from "@/lib/formatters";
+import { formatCompact, formatNumber, formatPercent, formatPrice, formatDateTime, priceText } from "@/lib/formatters";
 import { PHASE_LABELS, TREND_LABELS } from "@/lib/formatters/labels";
 import type { AnalysisReportData, TrendDirection } from "@/types/analysis";
 import { ChangeBadge } from "@/components/common/change-badge";
@@ -41,8 +41,8 @@ export function TrendSection({ report }: { report: AnalysisReportData }) {
           value={
             <div className="space-y-1 font-normal">
               <div>{t.swings.description}</div>
-              {t.swings.highs.length > 0 && <div className="num text-xs text-muted-foreground">قمم: {t.swings.highs.map((h) => formatPrice(h.price)).join(" ← ")}</div>}
-              {t.swings.lows.length > 0 && <div className="num text-xs text-muted-foreground">قيعان: {t.swings.lows.map((h) => formatPrice(h.price)).join(" ← ")}</div>}
+              {t.swings.highs.length > 0 && <div className="num text-xs text-muted-foreground">قمم: {t.swings.highs.map((h) => priceText(h.price)).join(" ← ")}</div>}
+              {t.swings.lows.length > 0 && <div className="num text-xs text-muted-foreground">قيعان: {t.swings.lows.map((h) => priceText(h.price)).join(" ← ")}</div>}
             </div>
           }
         />
@@ -54,7 +54,7 @@ export function TrendSection({ report }: { report: AnalysisReportData }) {
             value={
               <span className="font-normal">
                 {t.structureEvent
-                  ? `${t.structureEvent.type === "BOS" ? "كسر هيكل BOS (استمرار)" : "تغير الطابع CHOCH (انعكاس محتمل)"} ${t.structureEvent.direction === "UP" ? "صاعد" : "هابط"} عند ${formatPrice(t.structureEvent.level)} قبل ${t.structureEvent.barsAgo} شمعة`
+                  ? `${t.structureEvent.type === "BOS" ? "كسر هيكل BOS (استمرار)" : "تغير الطابع CHOCH (انعكاس محتمل)"} ${t.structureEvent.direction === "UP" ? "صاعد" : "هابط"} عند ${priceText(t.structureEvent.level)} قبل ${t.structureEvent.barsAgo} شمعة`
                   : "لم يُرصد كسر هيكلي بالإغلاق على الإطار المرجعي."}
               </span>
             }

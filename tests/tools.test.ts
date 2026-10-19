@@ -26,9 +26,11 @@ function fromCloses(closes: number[]): OHLCV[] {
 describe("مؤشرات إضافية", () => {
   const cs = makeCandles({ n: 200, noise: 0.03, seed: 11 });
   it("المذبذبات ضمن نطاقاتها", () => {
-    for (const v of williamsR(cs)) if (v !== null) expect(v).toBeGreaterThanOrEqual(-100), expect(v).toBeLessThanOrEqual(0);
-    for (const v of stochastic(cs).k) if (v !== null) expect(v).toBeGreaterThanOrEqual(0), expect(v).toBeLessThanOrEqual(100);
-    for (const v of mfi(cs)) if (v !== null) expect(v).toBeGreaterThanOrEqual(0), expect(v).toBeLessThanOrEqual(100);
+    const inRange = (series: (number | null)[], lo: number, hi: number) =>
+      series.every((v) => v === null || (v >= lo && v <= hi));
+    expect(inRange(williamsR(cs), -100, 0)).toBe(true);
+    expect(inRange(stochastic(cs).k, 0, 100)).toBe(true);
+    expect(inRange(mfi(cs), 0, 100)).toBe(true);
     for (const v of choppiness(cs)) if (v !== null) expect(v).toBeGreaterThan(0);
     expect(last(cci(cs))).not.toBeNull();
   });
