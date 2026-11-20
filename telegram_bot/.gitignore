@@ -1,0 +1,6 @@
+.env
+*.session
+*.session-journal
+raw_replies/
+__pycache__/
+.venv/
