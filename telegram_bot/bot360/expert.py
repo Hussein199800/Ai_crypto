@@ -29,7 +29,8 @@ SYSTEM = """أنت محلل عملات رقمية خبير تعمل لحساب �
 - أعطِ قرارين: سكالب (ساعات) وسوينغ (أيام إلى أسابيع).
 
 السطر الأول من ردك بالضبط بهذه الصيغة الإنجليزية (للفرز الآلي):
-VOTE scalp=BUY|WAIT|AVOID swing=BUY|WAIT|AVOID conf=0-100
+VOTE scalp=BUY|WAIT|AVOID swing=BUY|WAIT|AVOID conf=0-100 entry=رقم stop=رقم tp=رقم/رقم/رقم
+(entry/stop/tp لخطة السوينغ، أو للسكالب إن لم توجد خطة سوينغ، بأرقام إنجليزية بلا فواصل آلاف؛ احذفها إن لم تكن هناك خطة)
 ثم الرد: نص عربي لتيلجرام، لا يتجاوز 2500 حرف، بلا جداول Markdown وبلا ** أو #:
 🧠 الزبدة: سطر أو سطران بالقرار والسبب الأهم.
 ⚡ سكالب: [🟢 شراء / ⚪ انتظار / 🔴 لا تشتري] | الثقة X%
@@ -56,9 +57,31 @@ def build_input(symbol: str, price, bot_raw: dict[str, str], market: dict,
 
 
 
-async def ask_expert(user_input: str) -> str | None:
-    verdicts = await ask_all(SYSTEM, user_input)
-    return render_panel(verdicts) if verdicts else None
+async def ask_expert(user_input: str, enabled: set[str] | None = None) -> tuple[str | None, dict]:
+    """Returns (telegram text or None, summary {scalp, swing, conf, entry, stop, tps, providers})."""
+    verdicts = await ask_all(SYSTEM, user_input, enabled)
+    if not verdicts:
+        return None, {}
+    return render_panel(verdicts), summarize(verdicts)
+
+
+def summarize(verdicts: list[Verdict]) -> dict:
+    voted = [v for v in verdicts if v.scalp and v.swing]
+    if not voted:
+        return {"providers": [v.provider for v in verdicts]}
+    scalp, _ = _majority([v.scalp for v in voted])
+    swing, _ = _majority([v.swing for v in voted])
+    confs = [v.conf for v in voted if v.conf is not None]
+    planner = next((v for v in voted if v.swing == swing and v.entry and v.stop), None) \
+        or next((v for v in voted if v.entry and v.stop), None)
+    return {
+        "scalp": scalp, "swing": swing,
+        "conf": round(sum(confs) / len(confs)) if confs else None,
+        "entry": planner.entry if planner else None,
+        "stop": planner.stop if planner else None,
+        "tps": planner.tps if planner else None,
+        "providers": [v.provider for v in verdicts],
+    }
 
 
 ICON = {"BUY": "🟢 شراء", "WAIT": "⚪ انتظار", "AVOID": "🔴 لا تشتري"}

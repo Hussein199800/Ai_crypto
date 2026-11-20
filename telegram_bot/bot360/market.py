@@ -88,7 +88,7 @@ async def _get(http: httpx.AsyncClient, url: str, **params):
     return None
 
 
-async def technicals(http: httpx.AsyncClient, symbol: str) -> dict | None:
+async def _technicals(http: httpx.AsyncClient, symbol: str) -> dict | None:
     pair = symbol.upper() + "USDT"
     out = {}
     for tf in ("1h", "4h", "1d"):
@@ -98,7 +98,7 @@ async def technicals(http: httpx.AsyncClient, symbol: str) -> dict | None:
     return out or None
 
 
-async def fundamentals(http: httpx.AsyncClient, symbol: str) -> dict | None:
+async def _fundamentals(http: httpx.AsyncClient, symbol: str) -> dict | None:
     found = await _get(http, f"{GECKO}/search", query=symbol)
     if not found:
         return None
@@ -139,7 +139,7 @@ async def market_regime(http: httpx.AsyncClient) -> dict | None:
     glob, fng, btc = await asyncio.gather(
         _get(http, f"{GECKO}/global"),
         _get(http, "https://api.alternative.me/fng/", limit=7),
-        technicals(http, "BTC"),
+        _technicals(http, "BTC"),
     )
     out: dict = {}
     if glob and "data" in glob:
@@ -154,9 +154,17 @@ async def market_regime(http: httpx.AsyncClient) -> dict | None:
     return out or None
 
 
-async def gather_all(symbol: str) -> dict:
+async def _none():
+    return None
+
+
+async def gather_all(symbol: str, technicals: bool = True, fundamentals: bool = True, market: bool = True) -> dict:
+    """Each source can be switched off from the settings menu."""
     async with httpx.AsyncClient(timeout=12) as http:
         tech, fund, regime = await asyncio.gather(
-            technicals(http, symbol), fundamentals(http, symbol), market_regime(http)
+            _technicals(http, symbol) if technicals else _none(),
+            _fundamentals(http, symbol) if fundamentals else _none(),
+            market_regime(http) if market else _none(),
         )
-    return {"technicals": tech, "fundamentals": fund, "market": regime}
+    out = {"technicals": tech, "fundamentals": fund, "market": regime}
+    return {k: (v if v is not None else "معطّل أو غير متاح") for k, v in out.items()}

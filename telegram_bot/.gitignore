@@ -5,3 +5,5 @@ raw_replies/
 __pycache__/
 .venv/
 channels.json
+state.json
+decisions.jsonl

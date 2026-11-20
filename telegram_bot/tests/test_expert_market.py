@@ -50,7 +50,7 @@ def _no_keys(mp):
 
 def test_no_keys_falls_back_to_rules(monkeypatch):
     _no_keys(monkeypatch)
-    assert asyncio.run(expert.ask_expert("x")) is None
+    assert asyncio.run(expert.ask_expert("x")) == (None, {})
 
 
 def test_bad_claude_key_is_handled(monkeypatch):

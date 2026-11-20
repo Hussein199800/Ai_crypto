@@ -16,7 +16,8 @@ import anthropic
 import httpx
 
 log = logging.getLogger(__name__)
-VOTE = re.compile(r"VOTE\s+scalp=(BUY|WAIT|AVOID)\s+swing=(BUY|WAIT|AVOID)(?:\s+conf=(\d{1,3}))?", re.I)
+VOTE = re.compile(r"VOTE\s+scalp=(BUY|WAIT|AVOID)\s+swing=(BUY|WAIT|AVOID)(?:\s+conf=(\d{1,3}))?[^\n]*", re.I)
+_PLAN_NUM = r"=\s*([\d.]+)"
 TIMEOUT = float(os.getenv("AI_TIMEOUT_SECONDS", "240"))
 
 
@@ -27,6 +28,9 @@ class Verdict:
     scalp: str | None = None
     swing: str | None = None
     conf: int | None = None
+    entry: float | None = None
+    stop: float | None = None
+    tps: list[float] | None = None
 
 
 def parse_verdict(provider: str, raw: str) -> Verdict:
@@ -35,7 +39,19 @@ def parse_verdict(provider: str, raw: str) -> Verdict:
     if not m:
         return Verdict(provider, text)
     conf = int(m.group(3)) if m.group(3) else None
-    return Verdict(provider, text, m.group(1).upper(), m.group(2).upper(), conf)
+    line = m.group(0)
+
+    def num(key: str) -> float | None:
+        x = re.search(key + _PLAN_NUM, line, re.I)
+        try:
+            return float(x.group(1).rstrip(".")) if x else None
+        except ValueError:
+            return None
+
+    tp = re.search(r"tp=([\d.,/]+)", line, re.I)
+    tps = [float(t) for t in re.split(r"[/,]", tp.group(1)) if re.fullmatch(r"\d+(?:\.\d+)?", t)] if tp else None
+    return Verdict(provider, text, m.group(1).upper(), m.group(2).upper(), conf,
+                   num("entry"), num("stop"), tps or None)
 
 
 # ---------- Claude ----------
@@ -138,9 +154,17 @@ async def ask_openai(system: str, user: str) -> str | None:
 PROVIDERS = {"Claude": ask_claude, "Gemini": ask_gemini, "ChatGPT": ask_openai}
 
 
-async def ask_all(system: str, user: str) -> list[Verdict]:
-    """Ask every configured provider in parallel; keep the ones that answered."""
-    names = list(PROVIDERS)
+KEY_ENV = {"Claude": ("ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN"), "Gemini": ("GEMINI_API_KEY",),
+           "ChatGPT": ("OPENAI_API_KEY",)}
+
+
+def has_key(name: str) -> bool:
+    return any(os.getenv(k) for k in KEY_ENV[name])
+
+
+async def ask_all(system: str, user: str, enabled: set[str] | None = None) -> list[Verdict]:
+    """Ask every enabled provider that has a key, in parallel; keep the answers."""
+    names = [n for n in PROVIDERS if (enabled is None or n in enabled) and has_key(n)]
     answers = await asyncio.gather(*(PROVIDERS[n](system, user) for n in names), return_exceptions=True)
     out = []
     for name, ans in zip(names, answers):
