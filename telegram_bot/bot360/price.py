@@ -11,7 +11,7 @@ async def spot_price(symbol: str, quote: str = "USDT") -> float | None:
         pair += quote
     try:
         async with httpx.AsyncClient(timeout=8) as http:
-            r = await http.get("https://api.binance.com/api/v3/ticker/price", params={"symbol": pair})
+            r = await http.get("https://data-api.binance.vision/api/v3/ticker/price", params={"symbol": pair})
             if r.status_code == 200:
                 return float(r.json()["price"])
     except (httpx.HTTPError, KeyError, ValueError):

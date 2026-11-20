@@ -1,7 +1,14 @@
 """Entry point: control bot (BotFather token) + userbot (your account).
 
-Send the control bot a coin name like `ETH` and it replies with a spot
-decision for scalp and swing horizons.
+Send the control bot a coin name like `ETH`. It collects BOT 360 tools,
+independent technicals, fundamentals, market regime, news and your analyst
+channels, then the expert writes one explicit spot decision.
+
+Commands:
+  ETH                          analyse a coin
+  /addch @channel وصف أسلوبه   follow an analyst channel
+  /delch @channel              stop following it
+  /channels                    list followed channels
 """
 
 from __future__ import annotations
@@ -12,31 +19,52 @@ import re
 
 from telethon import TelegramClient, events
 
-from . import config
+from . import channels, config
 from .collector import Collector
 from .decision import decide, render
+from .expert import ask_expert, build_input
+from .market import gather_all
 from .parser import parse_reply
 from .price import spot_price
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 SYMBOL = re.compile(r"^/?(?:a\s+)?([A-Za-z0-9]{2,15})$")
+TG_LIMIT = 4000
 
 
-async def analyse(col: Collector, s: config.Settings, symbol: str) -> str:
+async def analyse(user: TelegramClient, col: Collector, s: config.Settings, symbol: str) -> str:
     tools = list(dict.fromkeys(s.scalp_tools + s.swing_tools))
-    raw = await col.run_many(tools, symbol)
+    # BOT 360 is sequential (one chat); everything else runs alongside it.
+    raw, market, posts, price = await asyncio.gather(
+        col.run_many(tools, symbol),
+        gather_all(symbol),
+        channels.recent_posts(user, symbol),
+        spot_price(symbol),
+    )
     readings = {t: parse_reply(t, txt) for t, txt in raw.items()}
-
-    price = await spot_price(symbol)
-    if price is None:  # fall back to a price printed by the source bot
+    if price is None:
         price = next((r.price for r in readings.values() if r.price), None)
 
     failed = [t for t, r in readings.items() if not r.useful]
-    decisions = [
+    rules = render(symbol, price, [
         decide("سكالب (ساعات)", [readings[t] for t in s.scalp_tools if t in readings], price),
         decide("سوينغ (أيام-أسابيع)", [readings[t] for t in s.swing_tools if t in readings], price),
-    ]
-    return render(symbol, price, decisions, failed)
+    ], failed)
+
+    verdict = await ask_expert(build_input(symbol, price, raw, market, posts, rules))
+    if verdict:
+        return f"📊 {symbol} | السعر {price}\n\n{verdict}"
+    return rules + "\n\n(الخبير غير متاح الآن — هذا قرار محرك القواعد فقط)"
+
+
+def chunks(text: str, size: int = TG_LIMIT) -> list[str]:
+    out, buf = [], ""
+    for line in text.split("\n"):
+        if len(buf) + len(line) + 1 > size:
+            out.append(buf)
+            buf = ""
+        buf += line + "\n"
+    return out + [buf] if buf.strip() else out
 
 
 async def main() -> None:
@@ -54,21 +82,43 @@ async def main() -> None:
         if event.sender_id != s.owner_id:
             return
         text = (event.raw_text or "").strip()
+
         if text in ("/start", "/help"):
-            await event.reply("أرسل اسم العملة مثل: ETH")
+            await event.reply(__doc__.split("Commands:")[1])
             return
+        if text.startswith("/addch"):
+            parts = text.split(maxsplit=2)
+            if len(parts) < 2:
+                await event.reply("الصيغة: /addch @channel وصف أسلوب المحلل ودقته")
+                return
+            channels.add(parts[1], parts[2] if len(parts) > 2 else "")
+            await event.reply(f"✅ أُضيفت {parts[1]}")
+            return
+        if text.startswith("/delch"):
+            parts = text.split()
+            ok = len(parts) > 1 and channels.remove(parts[1])
+            await event.reply("🗑️ حُذفت" if ok else "غير موجودة")
+            return
+        if text == "/channels":
+            data = channels.load()
+            await event.reply("\n".join(f"• @{k}: {v}" for k, v in data.items()) or "لا توجد قنوات بعد")
+            return
+
         m = SYMBOL.match(text)
         if not m:
             await event.reply("أرسل رمز العملة فقط، مثل: ETH أو SOL")
             return
         symbol = m.group(1).upper()
-        status = await event.reply(f"⏳ جارٍ تحليل {symbol} عبر أدوات BOT 360…")
+        status = await event.reply(f"⏳ أحلل {symbol} من كل الزوايا… (قد يأخذ دقيقة أو دقيقتين)")
         try:
-            result = await analyse(col, s, symbol)
+            result = await analyse(user, col, s, symbol)
         except Exception as exc:  # report instead of dying silently
             logging.exception("analysis failed")
             result = f"❌ فشل التحليل: {exc}"
-        await status.edit(result)
+        parts = chunks(result)
+        await status.edit(parts[0])
+        for extra in parts[1:]:
+            await event.respond(extra)
 
     logging.info("ready")
     await asyncio.gather(user.run_until_disconnected(), control.run_until_disconnected())

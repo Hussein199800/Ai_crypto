@@ -4,3 +4,4 @@
 raw_replies/
 __pycache__/
 .venv/
+channels.json
