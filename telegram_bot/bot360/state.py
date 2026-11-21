@@ -16,7 +16,7 @@ FILE = Path(__file__).resolve().parent.parent / "state.json"
 DEFAULTS: dict = {
     "providers": {"Claude": True, "Gemini": True, "ChatGPT": True},
     "tools_off": [],  # BOT 360 buttons the user switched off
-    "sources": {"bot360": True, "technicals": True, "fundamentals": True, "market": True, "channels": True},
+    "sources": {"bot360": True, "webapp": True, "technicals": True, "fundamentals": True, "market": True, "channels": True},
     "notify": {
         "decision_change": True, "channel_posts": True, "news": True,
         "market_shock": True, "daily_summary": True,

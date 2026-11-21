@@ -82,23 +82,31 @@ def settings_providers() -> tuple[str, list]:
     return text, rows + [_back()]
 
 
+def all_tools(s: config.Settings) -> list[str]:
+    return list(dict.fromkeys(s.scalp_tools + s.swing_tools + s.webapp_tools))
+
+
 def settings_tools(s: config.Settings) -> tuple[str, list]:
     off = set(state.get()["tools_off"])
-    tools = list(dict.fromkeys(s.scalp_tools + s.swing_tools))
-    rows, row = [], []
-    for t in tools:
-        row.append(Button.inline(f"{mark(t not in off)} {t}", f"tg:tool:{t}".encode()))
-        if len(row) == 2:
+    rows: list = []
+    for header, tools, per_row in (("💬 أزرار المحادثة", list(dict.fromkeys(s.scalp_tools + s.swing_tools)), 2),
+                                   ("🌐 أدوات التطبيق", s.webapp_tools, 1)):
+        rows.append([Button.inline(header, b"noop")])
+        row = []
+        for t in tools:
+            row.append(Button.inline(f"{mark(t not in off)} {t}", f"tg:tool:{all_tools(s).index(t)}".encode()))
+            if len(row) == per_row:
+                rows.append(row)
+                row = []
+        if row:
             rows.append(row)
-            row = []
-    if row:
-        rows.append(row)
-    text = "🧰 أدوات BOT 360: الأداة المطفأة لا تُضغط، فيصبح التحليل أسرع."
+    text = ("🧰 أدوات BOT 360: الأداة المطفأة لا تُفتح، فيصبح التحليل أسرع.\n"
+            "لإضافة أدوات أخرى من التطبيق: WEBAPP_TOOLS في ملف .env (بنفس أسمائها في التطبيق).")
     return text, rows + [_back()]
 
 
 SOURCE_NAMES = {
-    "bot360": "🤖 BOT 360", "technicals": "📉 فني مستقل (Binance)", "fundamentals": "🏦 أساسيات (CoinGecko)",
+    "bot360": "🤖 BOT 360 (أزرار المحادثة)", "webapp": "🌐 BOT 360 (التطبيق الداخلي)", "technicals": "📉 فني مستقل (Binance)", "fundamentals": "🏦 أساسيات (CoinGecko)",
     "market": "🌍 حالة السوق العام", "channels": "📢 قنوات المحللين",
 }
 NOTIFY_NAMES = {
@@ -139,9 +147,11 @@ def settings_time() -> tuple[str, list]:
     ]
 
 
-def handle_toggle(data: str) -> None:
+def handle_toggle(data: str, tools: list[str] | None = None) -> None:
     st = state.get()
     _, kind, key = data.split(":", 2)
+    if kind == "tool" and tools is not None and key.isdigit():
+        key = tools[int(key)]
     if kind == "prov":
         st["providers"][key] = not st["providers"].get(key, True)
     elif kind == "tool":

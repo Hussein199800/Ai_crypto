@@ -14,6 +14,7 @@ from .expert import ask_expert, build_input
 from .market import gather_all
 from .parser import parse_reply
 from .price import spot_price
+from .webapp import run_tools as run_webapp_tools
 
 ACTION = {"شراء": "BUY", "انتظار": "WAIT", "لا تشتري / خفّف": "AVOID"}
 
@@ -49,9 +50,12 @@ async def analyse(user: TelegramClient, col: Collector, s: config.Settings, symb
     src = st["sources"]
     scalp_tools, swing_tools = active_tools(s)
     tools = list(dict.fromkeys(scalp_tools + swing_tools)) if src["bot360"] else []
+    off = set(st["tools_off"])
+    app_tools = [t for t in s.webapp_tools if t not in off] if src.get("webapp") else []
 
-    raw, market, posts, price = await asyncio.gather(
+    raw, app_raw, market, posts, price = await asyncio.gather(
         col.run_many(tools, symbol) if tools else _empty({}),
+        run_webapp_tools(user, s.source_bot, app_tools, symbol) if app_tools else _empty({}),
         gather_all(symbol, technicals=src["technicals"], fundamentals=src["fundamentals"], market=src["market"]),
         channels.recent_posts(user, symbol) if src["channels"] else _empty([]),
         spot_price(symbol),
@@ -66,7 +70,9 @@ async def analyse(user: TelegramClient, col: Collector, s: config.Settings, symb
     rules_text = render(symbol, price, [d_scalp, d_swing], failed)
 
     enabled = {n for n, on in st["providers"].items() if on}
-    text, summary = await ask_expert(build_input(symbol, price, raw, market, posts, rules_text), enabled)
+    # The Mini App tools go to the experts as raw text alongside the chat tools.
+    all_raw = {**raw, **app_raw}
+    text, summary = await ask_expert(build_input(symbol, price, all_raw, market, posts, rules_text), enabled)
     if text:
         text = f"📊 {symbol} | السعر {price}\n\n{text}"
     else:

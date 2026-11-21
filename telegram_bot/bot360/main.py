@@ -239,11 +239,13 @@ async def main() -> None:
             "set:notif": ui.settings_notify, "set:time": ui.settings_time,
             "set:tools": lambda: ui.settings_tools(s),
         }
-        if data in screens:
+        if data == "noop":
+            await event.answer()
+        elif data in screens:
             body, buttons = screens[data]()
             await event.edit(body, buttons=buttons)
         elif data.startswith("tg:"):
-            ui.handle_toggle(data)
+            ui.handle_toggle(data, ui.all_tools(s))
             back = {"prov": "set:prov", "tool": "set:tools", "src": "set:src", "notif": "set:notif"}[data.split(":")[1]]
             body, buttons = screens[back]()
             await event.edit(body, buttons=buttons)

@@ -7,3 +7,4 @@ __pycache__/
 channels.json
 state.json
 decisions.jsonl
+webapp_discovery/
