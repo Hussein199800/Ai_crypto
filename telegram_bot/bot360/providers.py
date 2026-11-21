@@ -12,8 +12,12 @@ import os
 import re
 from dataclasses import dataclass
 
-import anthropic
 import httpx
+
+try:  # optional: not installable on Termux (needs Rust to build pydantic-core)
+    import anthropic
+except ImportError:  # pragma: no cover
+    anthropic = None
 
 log = logging.getLogger(__name__)
 VOTE = re.compile(r"VOTE\s+scalp=(BUY|WAIT|AVOID)\s+swing=(BUY|WAIT|AVOID)(?:\s+conf=(\d{1,3}))?[^\n]*", re.I)
@@ -57,7 +61,7 @@ def parse_verdict(provider: str, raw: str) -> Verdict:
 # ---------- Claude ----------
 
 async def ask_claude(system: str, user: str) -> str | None:
-    if not (os.getenv("ANTHROPIC_API_KEY") or os.getenv("ANTHROPIC_AUTH_TOKEN")):
+    if anthropic is None or not (os.getenv("ANTHROPIC_API_KEY") or os.getenv("ANTHROPIC_AUTH_TOKEN")):
         return None
     client = anthropic.AsyncAnthropic(timeout=TIMEOUT)
     messages: list = [{"role": "user", "content": user}]
@@ -159,6 +163,8 @@ KEY_ENV = {"Claude": ("ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN"), "Gemini": ("
 
 
 def has_key(name: str) -> bool:
+    if name == "Claude" and anthropic is None:
+        return False
     return any(os.getenv(k) for k in KEY_ENV[name])
 
 
